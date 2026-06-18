@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Brand {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  logoUrl        String   @default("")
+  primaryColor   String   @default("#000000")
+  trustpilotUrl  String
+  headingText    String   @default("We're happy to offer you a 50% refund on your order.")
+  subText        String   @default("Your honest review helps us improve, and we value that.")
+  createdAt      DateTime @default(now())
+}
