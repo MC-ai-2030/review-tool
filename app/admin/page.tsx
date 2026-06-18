@@ -94,16 +94,16 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Merknaam" required
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
             <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)}
               placeholder="Slug (URL)" required
               className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black font-mono" />
             <input type="url" value={trustpilotUrl} onChange={(e) => setTrustpilotUrl(e.target.value)}
               placeholder="Trustpilot URL" required
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
             <input type="url" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)}
               placeholder="Logo URL (optioneel)"
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
           </div>
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm">
@@ -130,22 +130,22 @@ export default function AdminPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                       placeholder="Merknaam"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                     <input type="text" value={editData.slug || ""} onChange={(e) => setEditData({ ...editData, slug: e.target.value })}
                       placeholder="Slug"
                       className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black font-mono" />
                     <input type="url" value={editData.trustpilotUrl || ""} onChange={(e) => setEditData({ ...editData, trustpilotUrl: e.target.value })}
                       placeholder="Trustpilot URL"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                     <input type="url" value={editData.logoUrl || ""} onChange={(e) => setEditData({ ...editData, logoUrl: e.target.value })}
                       placeholder="Logo URL"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                     <input type="text" value={editData.headingText || ""} onChange={(e) => setEditData({ ...editData, headingText: e.target.value })}
                       placeholder="Heading tekst"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                     <input type="text" value={editData.subText || ""} onChange={(e) => setEditData({ ...editData, subText: e.target.value })}
                       placeholder="Sub tekst"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
