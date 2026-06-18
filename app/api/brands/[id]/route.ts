@@ -13,8 +13,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
       ...(data.primaryColor !== undefined && { primaryColor: data.primaryColor }),
       ...(data.trustpilotUrl !== undefined && { trustpilotUrl: data.trustpilotUrl }),
-      ...(data.headingText !== undefined && { headingText: data.headingText }),
-      ...(data.subText !== undefined && { subText: data.subText }),
+      ...(data.language !== undefined && { language: data.language }),
     },
   });
 

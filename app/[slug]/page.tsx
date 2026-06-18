@@ -1,5 +1,6 @@
 import { prisma } from "@/app/lib/prisma";
 import { notFound } from "next/navigation";
+import { getTranslations } from "@/app/lib/translations";
 import ReviewClient from "./review-client";
 
 export default async function ReviewPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -8,5 +9,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ slug: s
 
   if (!brand) notFound();
 
-  return <ReviewClient brand={brand} />;
+  const t = getTranslations(brand.language);
+
+  return <ReviewClient brand={brand} t={t} />;
 }

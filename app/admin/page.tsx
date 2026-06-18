@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { LANGUAGES } from "@/app/lib/translations";
 
 interface Brand {
   id: string;
@@ -9,9 +10,11 @@ interface Brand {
   logoUrl: string;
   primaryColor: string;
   trustpilotUrl: string;
-  headingText: string;
-  subText: string;
+  language: string;
 }
+
+const inputClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
+const selectClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
 
 export default function AdminPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -20,6 +23,7 @@ export default function AdminPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#000000");
   const [trustpilotUrl, setTrustpilotUrl] = useState("");
+  const [language, setLanguage] = useState("en");
   const [addError, setAddError] = useState("");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -32,7 +36,6 @@ export default function AdminPage() {
 
   useEffect(() => { fetchBrands(); }, [fetchBrands]);
 
-  // Auto-generate slug from name
   function handleNameChange(value: string) {
     setName(value);
     setSlug(value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, ""));
@@ -42,17 +45,21 @@ export default function AdminPage() {
     e.preventDefault();
     setAddError("");
     setAdding(true);
-    const res = await fetch("/api/brands", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, slug, logoUrl, primaryColor, trustpilotUrl }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setAddError(data.error);
-    } else {
-      setName(""); setSlug(""); setLogoUrl(""); setPrimaryColor("#000000"); setTrustpilotUrl("");
-      fetchBrands();
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, slug, logoUrl, primaryColor, trustpilotUrl, language }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAddError(data.error);
+      } else {
+        setName(""); setSlug(""); setLogoUrl(""); setPrimaryColor("#000000"); setTrustpilotUrl(""); setLanguage("en");
+        fetchBrands();
+      }
+    } catch {
+      setAddError("Er ging iets mis");
     }
     setAdding(false);
   }
@@ -93,23 +100,27 @@ export default function AdminPage() {
           <h2 className="font-semibold mb-4">Nieuw merk toevoegen</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Merknaam" required
-              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+              placeholder="Merknaam" required className={inputClass} />
             <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)}
-              placeholder="Slug (URL)" required
-              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white font-mono" />
+              placeholder="Slug (URL)" required className={`${inputClass} font-mono`} />
             <input type="url" value={trustpilotUrl} onChange={(e) => setTrustpilotUrl(e.target.value)}
-              placeholder="Trustpilot URL" required
-              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+              placeholder="Trustpilot URL" required className={inputClass} />
             <input type="url" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="Logo URL (optioneel)"
-              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+              placeholder="Logo URL (optioneel)" className={inputClass} />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
               <span className="text-gray-700">Kleur:</span>
               <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
                 className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-gray-700">Taal:</span>
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className={selectClass}>
+                {Object.entries(LANGUAGES).map(([code, { label, flag }]) => (
+                  <option key={code} value={code}>{flag} {label}</option>
+                ))}
+              </select>
             </label>
             <div className="flex-1" />
             <button type="submit" disabled={adding}
@@ -129,27 +140,22 @@ export default function AdminPage() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                      placeholder="Merknaam"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+                      placeholder="Merknaam" className={inputClass} />
                     <input type="text" value={editData.slug || ""} onChange={(e) => setEditData({ ...editData, slug: e.target.value })}
-                      placeholder="Slug"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white font-mono" />
+                      placeholder="Slug" className={`${inputClass} font-mono`} />
                     <input type="url" value={editData.trustpilotUrl || ""} onChange={(e) => setEditData({ ...editData, trustpilotUrl: e.target.value })}
-                      placeholder="Trustpilot URL"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+                      placeholder="Trustpilot URL" className={inputClass} />
                     <input type="url" value={editData.logoUrl || ""} onChange={(e) => setEditData({ ...editData, logoUrl: e.target.value })}
-                      placeholder="Logo URL"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
-                    <input type="text" value={editData.headingText || ""} onChange={(e) => setEditData({ ...editData, headingText: e.target.value })}
-                      placeholder="Heading tekst"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
-                    <input type="text" value={editData.subText || ""} onChange={(e) => setEditData({ ...editData, subText: e.target.value })}
-                      placeholder="Sub tekst"
-                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
+                      placeholder="Logo URL" className={inputClass} />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
                       className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
+                    <select value={editData.language || "en"} onChange={(e) => setEditData({ ...editData, language: e.target.value })} className={selectClass}>
+                      {Object.entries(LANGUAGES).map(([code, { label, flag }]) => (
+                        <option key={code} value={code}>{flag} {label}</option>
+                      ))}
+                    </select>
                     <div className="flex-1" />
                     <button onClick={() => setEditing(null)}
                       className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Annuleren</button>
@@ -164,6 +170,9 @@ export default function AdminPage() {
                     <p className="font-medium text-sm">{brand.name}</p>
                     <p className="text-xs text-gray-500 font-mono">/{brand.slug}</p>
                   </div>
+                  <span className="text-xs text-gray-500 flex-shrink-0">
+                    {LANGUAGES[brand.language]?.flag || ""} {LANGUAGES[brand.language]?.label || brand.language}
+                  </span>
                   <a href={`${baseUrl}/${brand.slug}`} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-blue-500 hover:underline flex-shrink-0">
                     Bekijk pagina

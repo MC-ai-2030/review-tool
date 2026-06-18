@@ -9,7 +9,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const { name, slug, logoUrl, primaryColor, trustpilotUrl, headingText, subText } =
+  const { name, slug, logoUrl, primaryColor, trustpilotUrl, language } =
     await request.json();
 
   if (!name || !slug || !trustpilotUrl) {
@@ -40,8 +40,7 @@ export async function POST(request: NextRequest) {
       logoUrl: logoUrl || "",
       primaryColor: primaryColor || "#000000",
       trustpilotUrl,
-      headingText: headingText || undefined,
-      subText: subText || undefined,
+      language: language || "en",
     },
   });
 

@@ -14,7 +14,6 @@ model Brand {
   logoUrl        String   @default("")
   primaryColor   String   @default("#000000")
   trustpilotUrl  String
-  headingText    String   @default("We're happy to offer you a 50% refund on your order.")
-  subText        String   @default("Your honest review helps us improve, and we value that.")
+  language       String   @default("en")
   createdAt      DateTime @default(now())
 }
