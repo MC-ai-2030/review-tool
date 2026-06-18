@@ -97,7 +97,7 @@ export default function AdminPage() {
               className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
             <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)}
               placeholder="Slug (URL)" required
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black font-mono" />
+              className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white font-mono" />
             <input type="url" value={trustpilotUrl} onChange={(e) => setTrustpilotUrl(e.target.value)}
               placeholder="Trustpilot URL" required
               className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
@@ -107,9 +107,9 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">Kleur:</span>
+              <span className="text-gray-700">Kleur:</span>
               <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
-                className="w-8 h-8 rounded border border-gray-200 cursor-pointer" />
+                className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
             </label>
             <div className="flex-1" />
             <button type="submit" disabled={adding}
@@ -133,7 +133,7 @@ export default function AdminPage() {
                       className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
                     <input type="text" value={editData.slug || ""} onChange={(e) => setEditData({ ...editData, slug: e.target.value })}
                       placeholder="Slug"
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black font-mono" />
+                      className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white font-mono" />
                     <input type="url" value={editData.trustpilotUrl || ""} onChange={(e) => setEditData({ ...editData, trustpilotUrl: e.target.value })}
                       placeholder="Trustpilot URL"
                       className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white" />
@@ -149,10 +149,10 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
-                      className="w-8 h-8 rounded border border-gray-200 cursor-pointer" />
+                      className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
                     <div className="flex-1" />
                     <button onClick={() => setEditing(null)}
-                      className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">Annuleren</button>
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Annuleren</button>
                     <button onClick={saveEdit}
                       className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer">Opslaan</button>
                   </div>
@@ -162,18 +162,18 @@ export default function AdminPage() {
                   <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: brand.primaryColor }} />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{brand.name}</p>
-                    <p className="text-xs text-gray-400 font-mono">/{brand.slug}</p>
+                    <p className="text-xs text-gray-500 font-mono">/{brand.slug}</p>
                   </div>
                   <a href={`${baseUrl}/${brand.slug}`} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-blue-500 hover:underline flex-shrink-0">
                     Bekijk pagina
                   </a>
                   <button onClick={() => startEdit(brand)}
-                    className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg cursor-pointer">
+                    className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">
                     Bewerken
                   </button>
                   <button onClick={() => handleDelete(brand.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
+                    className="text-gray-500 hover:text-red-500 transition-colors cursor-pointer">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -184,7 +184,7 @@ export default function AdminPage() {
           ))}
 
           {brands.length === 0 && (
-            <p className="text-center text-gray-400 py-8">Nog geen merken. Voeg er hierboven een toe.</p>
+            <p className="text-center text-gray-500 py-8">Nog geen merken. Voeg er hierboven een toe.</p>
           )}
         </div>
       </div>
