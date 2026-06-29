@@ -22,6 +22,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Public: Shopify webhooks
+  if (pathname === "/api/webhooks/shopify") {
+    return NextResponse.next();
+  }
+
   // Admin routes need auth
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/")) {
     const auth = request.cookies.get(AUTH_COOKIE);

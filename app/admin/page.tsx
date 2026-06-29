@@ -11,6 +11,9 @@ interface Brand {
   primaryColor: string;
   trustpilotUrl: string;
   language: string;
+  shopifyDomain: string;
+  emailEnabled: boolean;
+  emailDelayMin: number;
 }
 
 const inputClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
@@ -28,6 +31,13 @@ export default function AdminPage() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Brand>>({});
+
+  // Shopify connect state
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [shopifyDomain, setShopifyDomain] = useState("");
+  const [shopifyToken, setShopifyToken] = useState("");
+  const [connectError, setConnectError] = useState("");
+  const [connectLoading, setConnectLoading] = useState(false);
 
   const fetchBrands = useCallback(async () => {
     const res = await fetch("/api/brands");
@@ -86,6 +96,36 @@ export default function AdminPage() {
     fetchBrands();
   }
 
+  async function handleConnectShopify(brandId: string) {
+    setConnectError("");
+    setConnectLoading(true);
+    try {
+      const res = await fetch(`/api/brands/${brandId}/shopify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shopifyDomain, shopifyToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setConnectError(data.error);
+      } else {
+        setConnecting(null);
+        setShopifyDomain("");
+        setShopifyToken("");
+        fetchBrands();
+      }
+    } catch {
+      setConnectError("Er ging iets mis");
+    }
+    setConnectLoading(false);
+  }
+
+  async function handleDisconnectShopify(brandId: string) {
+    if (!confirm("Shopify koppeling verwijderen? E-mails worden gestopt.")) return;
+    await fetch(`/api/brands/${brandId}/shopify`, { method: "DELETE" });
+    fetchBrands();
+  }
+
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
@@ -133,60 +173,122 @@ export default function AdminPage() {
 
         {/* Brand list */}
         <h2 className="font-semibold mb-3">Merken ({brands.length})</h2>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {brands.map((brand) => (
-            <div key={brand.id} className="bg-white rounded-2xl border border-gray-200 p-4">
-              {editing === brand.id ? (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                      placeholder="Merknaam" className={inputClass} />
-                    <input type="text" value={editData.slug || ""} onChange={(e) => setEditData({ ...editData, slug: e.target.value })}
-                      placeholder="Slug" className={`${inputClass} font-mono`} />
-                    <input type="url" value={editData.trustpilotUrl || ""} onChange={(e) => setEditData({ ...editData, trustpilotUrl: e.target.value })}
-                      placeholder="Trustpilot URL" className={inputClass} />
-                    <input type="url" value={editData.logoUrl || ""} onChange={(e) => setEditData({ ...editData, logoUrl: e.target.value })}
-                      placeholder="Logo URL" className={inputClass} />
+            <div key={brand.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="p-4">
+                {editing === brand.id ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input type="text" value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                        placeholder="Merknaam" className={inputClass} />
+                      <input type="text" value={editData.slug || ""} onChange={(e) => setEditData({ ...editData, slug: e.target.value })}
+                        placeholder="Slug" className={`${inputClass} font-mono`} />
+                      <input type="url" value={editData.trustpilotUrl || ""} onChange={(e) => setEditData({ ...editData, trustpilotUrl: e.target.value })}
+                        placeholder="Trustpilot URL" className={inputClass} />
+                      <input type="url" value={editData.logoUrl || ""} onChange={(e) => setEditData({ ...editData, logoUrl: e.target.value })}
+                        placeholder="Logo URL" className={inputClass} />
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
+                        className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
+                      <select value={editData.language || "en"} onChange={(e) => setEditData({ ...editData, language: e.target.value })} className={selectClass}>
+                        {Object.entries(LANGUAGES).map(([code, { label, flag }]) => (
+                          <option key={code} value={code}>{flag} {label}</option>
+                        ))}
+                      </select>
+                      <div className="flex-1" />
+                      <button onClick={() => setEditing(null)}
+                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Annuleren</button>
+                      <button onClick={saveEdit}
+                        className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer">Opslaan</button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
-                      className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
-                    <select value={editData.language || "en"} onChange={(e) => setEditData({ ...editData, language: e.target.value })} className={selectClass}>
-                      {Object.entries(LANGUAGES).map(([code, { label, flag }]) => (
-                        <option key={code} value={code}>{flag} {label}</option>
-                      ))}
-                    </select>
-                    <div className="flex-1" />
-                    <button onClick={() => setEditing(null)}
-                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Annuleren</button>
-                    <button onClick={saveEdit}
-                      className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer">Opslaan</button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: brand.primaryColor }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{brand.name}</p>
+                      <p className="text-xs text-gray-500 font-mono">/{brand.slug}</p>
+                    </div>
+                    <span className="text-xs text-gray-500 flex-shrink-0">
+                      {LANGUAGES[brand.language]?.flag || ""} {LANGUAGES[brand.language]?.label || brand.language}
+                    </span>
+                    {brand.emailEnabled ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                        E-mail actief
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                        Geen e-mail
+                      </span>
+                    )}
+                    <a href={`${baseUrl}/${brand.slug}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:underline flex-shrink-0">
+                      Bekijk
+                    </a>
+                    <button onClick={() => startEdit(brand)}
+                      className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">
+                      Bewerken
+                    </button>
+                    <button onClick={() => handleDelete(brand.id)}
+                      className="text-gray-500 hover:text-red-500 transition-colors cursor-pointer">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: brand.primaryColor }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{brand.name}</p>
-                    <p className="text-xs text-gray-500 font-mono">/{brand.slug}</p>
-                  </div>
-                  <span className="text-xs text-gray-500 flex-shrink-0">
-                    {LANGUAGES[brand.language]?.flag || ""} {LANGUAGES[brand.language]?.label || brand.language}
-                  </span>
-                  <a href={`${baseUrl}/${brand.slug}`} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:underline flex-shrink-0">
-                    Bekijk pagina
-                  </a>
-                  <button onClick={() => startEdit(brand)}
-                    className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">
-                    Bewerken
-                  </button>
-                  <button onClick={() => handleDelete(brand.id)}
-                    className="text-gray-500 hover:text-red-500 transition-colors cursor-pointer">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                )}
+              </div>
+
+              {/* Shopify connection panel */}
+              {!editing && (
+                <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/50">
+                  {brand.emailEnabled ? (
+                    <div className="flex items-center gap-3 text-sm">
+                      <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-600">Shopify gekoppeld: <span className="font-mono text-gray-900">{brand.shopifyDomain}</span></span>
+                      <span className="text-gray-400">·</span>
+                      <span className="text-gray-500">{brand.emailDelayMin} min na bestelling</span>
+                      <div className="flex-1" />
+                      <button onClick={() => handleDisconnectShopify(brand.id)}
+                        className="text-xs text-red-500 hover:text-red-700 cursor-pointer">
+                        Ontkoppelen
+                      </button>
+                    </div>
+                  ) : connecting === brand.id ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-700">Shopify koppelen</p>
+                      <p className="text-xs text-gray-500">
+                        Maak een Custom App aan in Shopify Admin → Settings → Apps → Develop apps.
+                        Geef de app <strong>read_orders</strong> rechten en kopieer de Admin API access token.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" value={shopifyDomain} onChange={(e) => setShopifyDomain(e.target.value)}
+                          placeholder="store-naam.myshopify.com" className={`${inputClass} font-mono`} />
+                        <input type="text" value={shopifyToken} onChange={(e) => setShopifyToken(e.target.value)}
+                          placeholder="shpat_..." className={`${inputClass} font-mono`} />
+                      </div>
+                      {connectError && <p className="text-red-500 text-xs">{connectError}</p>}
+                      <div className="flex gap-2">
+                        <button onClick={() => handleConnectShopify(brand.id)} disabled={connectLoading || !shopifyDomain || !shopifyToken}
+                          className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer disabled:opacity-50">
+                          {connectLoading ? "Koppelen..." : "Koppelen"}
+                        </button>
+                        <button onClick={() => { setConnecting(null); setConnectError(""); }}
+                          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
+                          Annuleren
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setConnecting(brand.id); setShopifyDomain(""); setShopifyToken(""); setConnectError(""); }}
+                      className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer">
+                      + Shopify koppelen voor review e-mails
+                    </button>
+                  )}
                 </div>
               )}
             </div>

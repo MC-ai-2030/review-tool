@@ -8,12 +8,34 @@ datasource db {
 }
 
 model Brand {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  name           String
-  logoUrl        String   @default("")
-  primaryColor   String   @default("#000000")
-  trustpilotUrl  String
-  language       String   @default("en")
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  logoUrl         String   @default("")
+  primaryColor    String   @default("#000000")
+  trustpilotUrl   String
+  language        String   @default("en")
+  shopifyDomain   String   @default("")
+  shopifyToken    String   @default("")
+  webhookId       String   @default("")
+  emailEnabled    Boolean  @default(false)
+  emailDelayMin   Int      @default(30)
+  createdAt       DateTime @default(now())
+  sentEmails      SentEmail[]
+}
+
+model SentEmail {
+  id              String   @id @default(cuid())
+  brand           Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId         String
+  orderId         String
+  customerEmail   String
+  customerName    String   @default("")
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  status          String   @default("scheduled")
+  createdAt       DateTime @default(now())
+
+  @@unique([brandId, orderId])
+  @@index([brandId])
 }
