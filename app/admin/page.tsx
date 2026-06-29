@@ -127,12 +127,67 @@ export default function AdminPage() {
   }
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const [showGuide, setShowGuide] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">Review Tool — Admin</h1>
+        <button onClick={() => setShowGuide(!showGuide)}
+          className="px-3 py-1.5 text-sm text-blue-500 hover:text-blue-700 border border-blue-200 rounded-lg cursor-pointer">
+          {showGuide ? "Sluiten" : "Hoe werkt het?"}
+        </button>
       </nav>
+
+      {showGuide && (
+        <div className="bg-blue-50 border-b border-blue-100">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            <h2 className="font-bold text-lg mb-4 text-gray-900">Hoe werkt het?</h2>
+
+            <div className="space-y-6 text-sm text-gray-700">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Stap 1: Merk aanmaken</h3>
+                <p>Vul hieronder de merknaam, Trustpilot URL, logo en kleur in. Kies de juiste taal voor de review-pagina en e-mails. Na het toevoegen is de review-pagina direct beschikbaar op <span className="font-mono text-gray-900">reviews-verified.com/jouw-slug</span>.</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Stap 2: Shopify koppelen</h3>
+                <p className="mb-2">Klik op <strong>"+ Shopify koppelen voor review e-mails"</strong> bij het merk. Je hebt twee dingen nodig:</p>
+                <ol className="list-decimal list-inside space-y-1.5 ml-1">
+                  <li>Ga naar je Shopify Admin → <strong>Settings</strong> → <strong>Apps and sales channels</strong> → <strong>Develop apps</strong></li>
+                  <li>Klik <strong>"Create an app"</strong> en geef het een naam (bijv. "Review Tool")</li>
+                  <li>Ga naar <strong>"Configure Admin API scopes"</strong></li>
+                  <li>Zoek en vink aan: <strong>read_orders</strong></li>
+                  <li>Klik <strong>"Save"</strong> en dan <strong>"Install app"</strong></li>
+                  <li>Kopieer de <strong>Admin API access token</strong> (begint met <span className="font-mono">shpat_</span>)</li>
+                </ol>
+                <p className="mt-2">Vul je Shopify domein in (bijv. <span className="font-mono">jouw-store.myshopify.com</span>) en plak de access token. Klik "Koppelen" — de tool registreert automatisch een webhook bij Shopify.</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Stap 3: Klaar!</h3>
+                <p>Na het koppelen ontvangt elke klant automatisch <strong>30 minuten na een bestelling</strong> een review-mail. De mail bevat:</p>
+                <ul className="list-disc list-inside space-y-1 ml-1 mt-1">
+                  <li>Merknaam, logo en kleuren</li>
+                  <li>Persoonlijke begroeting met voornaam</li>
+                  <li>Link naar de review-pagina</li>
+                  <li>Uitschrijflink onderaan</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Wat ziet de klant?</h3>
+                <p>Op de review-pagina kiest de klant uit drie opties:</p>
+                <ul className="list-disc list-inside space-y-1 ml-1 mt-1">
+                  <li><strong>Loved it</strong> → wordt doorgestuurd naar Trustpilot</li>
+                  <li><strong>It was okay / Disappointed</strong> → kan feedback achterlaten (komt niet op Trustpilot)</li>
+                </ul>
+                <p className="mt-1">Zo krijg je meer positieve Trustpilot reviews en waardevolle interne feedback.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Add brand */}
