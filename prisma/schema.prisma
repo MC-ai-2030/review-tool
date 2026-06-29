@@ -39,3 +39,9 @@ model SentEmail {
   @@unique([brandId, orderId])
   @@index([brandId])
 }
+
+model Unsubscribed {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

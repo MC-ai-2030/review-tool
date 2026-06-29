@@ -50,6 +50,17 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
     no: "Gi din anmeldelse",
   };
 
+  const unsubscribeText: Record<string, string> = {
+    en: "Unsubscribe",
+    nl: "Uitschrijven",
+    de: "Abmelden",
+    sv: "Avprenumerera",
+    da: "Afmeld",
+    no: "Avmeld",
+  };
+
+  const unsubscribeUrl = `https://reviews-verified.com/unsubscribe?email=${encodeURIComponent(to)}`;
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -81,6 +92,12 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
           </a>
         </div>
       </div>
+    </div>
+    <!-- Unsubscribe -->
+    <div style="text-align:center;padding:20px 0 0;">
+      <a href="${unsubscribeUrl}" style="color:#999;font-size:0.75rem;text-decoration:underline;">
+        ${unsubscribeText[language] || unsubscribeText.en}
+      </a>
     </div>
   </div>
 </body>

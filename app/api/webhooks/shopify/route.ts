@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
 
   const orderId = String(order.id);
 
+  // Check if unsubscribed
+  const unsubscribed = await prisma.unsubscribed.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+  if (unsubscribed) {
+    return Response.json({ skipped: true, reason: "unsubscribed" });
+  }
+
   // Check if already sent
   const existing = await prisma.sentEmail.findUnique({
     where: { brandId_orderId: { brandId: brand.id, orderId } },
