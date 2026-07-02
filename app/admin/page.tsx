@@ -35,7 +35,8 @@ export default function AdminPage() {
   // Shopify connect state
   const [connecting, setConnecting] = useState<string | null>(null);
   const [shopifyDomain, setShopifyDomain] = useState("");
-  const [shopifyToken, setShopifyToken] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
   const [connectError, setConnectError] = useState("");
   const [connectLoading, setConnectLoading] = useState(false);
 
@@ -103,7 +104,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/brands/${brandId}/shopify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shopifyDomain, shopifyToken }),
+        body: JSON.stringify({ shopifyDomain, clientId, clientSecret }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -111,7 +112,8 @@ export default function AdminPage() {
       } else {
         setConnecting(null);
         setShopifyDomain("");
-        setShopifyToken("");
+        setClientId("");
+        setClientSecret("");
         fetchBrands();
       }
     } catch {
@@ -152,16 +154,17 @@ export default function AdminPage() {
 
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Stap 2: Shopify koppelen</h3>
-                <p className="mb-2">Klik op <strong>"+ Shopify koppelen voor review e-mails"</strong> bij het merk. Je hebt twee dingen nodig:</p>
+                <p className="mb-2">Klik op <strong>"+ Shopify koppelen voor review e-mails"</strong> bij het merk. Je hebt drie dingen nodig: Shopify domein, Client ID en Client Secret.</p>
                 <ol className="list-decimal list-inside space-y-1.5 ml-1">
-                  <li>Ga naar je Shopify Admin → <strong>Settings</strong> → <strong>Apps and sales channels</strong> → <strong>Develop apps</strong></li>
-                  <li>Klik <strong>"Create an app"</strong> en geef het een naam (bijv. "Review Tool")</li>
-                  <li>Ga naar <strong>"Configure Admin API scopes"</strong></li>
-                  <li>Zoek en vink aan: <strong>read_orders</strong></li>
-                  <li>Klik <strong>"Save"</strong> en dan <strong>"Install app"</strong></li>
-                  <li>Kopieer de <strong>Admin API access token</strong> (begint met <span className="font-mono">shpat_</span>)</li>
+                  <li>Ga naar <strong>dev.shopify.com</strong> en log in</li>
+                  <li>Klik <strong>Apps → Create app → Start from Dev Dashboard</strong></li>
+                  <li>Geef de app een naam (bijv. "Review Tool") → <strong>Create</strong></li>
+                  <li>Ga naar <strong>Versions</strong> → stel de API scope <strong>read_orders</strong> in</li>
+                  <li>Klik <strong>Release</strong> om de versie te activeren</li>
+                  <li>Ga naar <strong>Home</strong> → installeer de app op je store</li>
+                  <li>Ga naar <strong>Settings</strong> → kopieer <strong>Client ID</strong> en <strong>Client Secret</strong></li>
                 </ol>
-                <p className="mt-2">Vul je Shopify domein in (bijv. <span className="font-mono">jouw-store.myshopify.com</span>) en plak de access token. Klik "Koppelen" — de tool registreert automatisch een webhook bij Shopify.</p>
+                <p className="mt-2">Vul je Shopify domein in (bijv. <span className="font-mono">jouw-store.myshopify.com</span>), de Client ID en Client Secret. Klik "Koppelen" — de tool haalt automatisch een access token op en registreert een webhook bij Shopify.</p>
               </div>
 
               <div>
@@ -317,18 +320,19 @@ export default function AdminPage() {
                     <div className="space-y-3">
                       <p className="text-sm font-medium text-gray-700">Shopify koppelen</p>
                       <p className="text-xs text-gray-500">
-                        Maak een Custom App aan in Shopify Admin → Settings → Apps → Develop apps.
-                        Geef de app <strong>read_orders</strong> rechten en kopieer de Admin API access token.
+                        Ga naar <strong>dev.shopify.com</strong> → Apps → Create app. Stel <strong>read_orders</strong> scope in bij Versions, release de versie, en installeer de app op je store. Kopieer daarna Client ID en Client Secret vanuit Settings.
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <input type="text" value={shopifyDomain} onChange={(e) => setShopifyDomain(e.target.value)}
                           placeholder="store-naam.myshopify.com" className={`${inputClass} font-mono`} />
-                        <input type="text" value={shopifyToken} onChange={(e) => setShopifyToken(e.target.value)}
-                          placeholder="shpat_..." className={`${inputClass} font-mono`} />
+                        <input type="text" value={clientId} onChange={(e) => setClientId(e.target.value)}
+                          placeholder="Client ID" className={`${inputClass} font-mono`} />
+                        <input type="text" value={clientSecret} onChange={(e) => setClientSecret(e.target.value)}
+                          placeholder="Client Secret" className={`${inputClass} font-mono`} />
                       </div>
                       {connectError && <p className="text-red-500 text-xs">{connectError}</p>}
                       <div className="flex gap-2">
-                        <button onClick={() => handleConnectShopify(brand.id)} disabled={connectLoading || !shopifyDomain || !shopifyToken}
+                        <button onClick={() => handleConnectShopify(brand.id)} disabled={connectLoading || !shopifyDomain || !clientId || !clientSecret}
                           className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer disabled:opacity-50">
                           {connectLoading ? "Koppelen..." : "Koppelen"}
                         </button>
@@ -339,7 +343,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ) : (
-                    <button onClick={() => { setConnecting(brand.id); setShopifyDomain(""); setShopifyToken(""); setConnectError(""); }}
+                    <button onClick={() => { setConnecting(brand.id); setShopifyDomain(""); setClientId(""); setClientSecret(""); setConnectError(""); }}
                       className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer">
                       + Shopify koppelen voor review e-mails
                     </button>
