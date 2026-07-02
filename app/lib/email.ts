@@ -1,5 +1,4 @@
 import { Resend } from "resend";
-import { getTranslations } from "./translations";
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
@@ -13,53 +12,124 @@ interface SendReviewEmailParams {
   logoUrl: string;
   primaryColor: string;
   language: string;
+  emailSubject: string;
+  emailBody: string;
   scheduledAt: Date;
 }
 
-const EMAIL_SUBJECTS: Record<string, string> = {
-  en: "How was your experience with {brand}?",
-  nl: "Hoe was je ervaring met {brand}?",
-  de: "Wie war Ihre Erfahrung mit {brand}?",
-  sv: "Hur var din upplevelse med {brand}?",
-  da: "Hvordan var din oplevelse med {brand}?",
-  no: "Hvordan var opplevelsen din med {brand}?",
+const DEFAULT_SUBJECTS: Record<string, string> = {
+  en: "How was your experience with {merknaam}?",
+  nl: "Hoe was je ervaring met {merknaam}?",
+  de: "Wie war Ihre Erfahrung mit {merknaam}?",
+  sv: "Hur var din upplevelse med {merknaam}?",
+  da: "Hvordan var din oplevelse med {merknaam}?",
+  no: "Hvordan var opplevelsen din med {merknaam}?",
 };
 
+const DEFAULT_BODIES: Record<string, string> = {
+  en: `Hi {voornaam},
+
+Thank you for being a customer of {merknaam}!
+
+We're happy to offer you a 50% refund on your order. Your honest review helps us improve, and we value that.
+
+Click the button below to leave your review.
+
+Kind regards,
+{merknaam}`,
+  nl: `Hoi {voornaam},
+
+Bedankt dat je klant bent bij {merknaam}!
+
+We bieden je graag 50% restitutie aan op je bestelling. Jouw eerlijke review helpt ons verbeteren, en dat waarderen we.
+
+Klik op de knop hieronder om je review achter te laten.
+
+Met vriendelijke groet,
+{merknaam}`,
+  de: `Hallo {voornaam},
+
+Vielen Dank, dass Sie Kunde bei {merknaam} sind!
+
+Wir bieten Ihnen gerne 50% Erstattung auf Ihre Bestellung. Ihre ehrliche Bewertung hilft uns, besser zu werden.
+
+Klicken Sie auf den Button unten, um Ihre Bewertung abzugeben.
+
+Mit freundlichen Grüßen,
+{merknaam}`,
+  sv: `Hej {voornaam},
+
+Tack för att du är kund hos {merknaam}!
+
+Vi erbjuder dig gärna 50% återbetalning på din beställning. Din ärliga recension hjälper oss att förbättras.
+
+Klicka på knappen nedan för att lämna din recension.
+
+Med vänliga hälsningar,
+{merknaam}`,
+  da: `Hej {voornaam},
+
+Tak fordi du er kunde hos {merknaam}!
+
+Vi tilbyder dig gerne 50% refusion på din ordre. Din ærlige anmeldelse hjælper os med at forbedre os.
+
+Klik på knappen nedenfor for at give din anmeldelse.
+
+Med venlig hilsen,
+{merknaam}`,
+  no: `Hei {voornaam},
+
+Takk for at du er kunde hos {merknaam}!
+
+Vi tilbyr deg gjerne 50% refusjon på din bestilling. Din ærlige anmeldelse hjelper oss å bli bedre.
+
+Klikk på knappen nedenfor for å gi din anmeldelse.
+
+Med vennlig hilsen,
+{merknaam}`,
+};
+
+const CTA_LABELS: Record<string, string> = {
+  en: "Leave your review",
+  nl: "Laat je review achter",
+  de: "Bewertung abgeben",
+  sv: "Lämna din recension",
+  da: "Giv din anmeldelse",
+  no: "Gi din anmeldelse",
+};
+
+const UNSUBSCRIBE_LABELS: Record<string, string> = {
+  en: "Unsubscribe",
+  nl: "Uitschrijven",
+  de: "Abmelden",
+  sv: "Avprenumerera",
+  da: "Afmeld",
+  no: "Avmeld",
+};
+
+function replaceVars(text: string, firstName: string, brandName: string): string {
+  return text
+    .replace(/\{voornaam\}/g, firstName || "")
+    .replace(/\{merknaam\}/g, brandName);
+}
+
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, scheduledAt } = params;
-  const t = getTranslations(language);
-  const subject = (EMAIL_SUBJECTS[language] || EMAIL_SUBJECTS.en).replace("{brand}", brandName);
-  const reviewUrl = `https://reviews-verified.com/${brandSlug}`;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, scheduledAt } = params;
   const firstName = customerName.split(" ")[0] || "";
-
-  const greeting: Record<string, string> = {
-    en: firstName ? `Hi ${firstName},` : "Hi,",
-    nl: firstName ? `Hoi ${firstName},` : "Hoi,",
-    de: firstName ? `Hallo ${firstName},` : "Hallo,",
-    sv: firstName ? `Hej ${firstName},` : "Hej,",
-    da: firstName ? `Hej ${firstName},` : "Hej,",
-    no: firstName ? `Hei ${firstName},` : "Hei,",
-  };
-
-  const cta: Record<string, string> = {
-    en: "Leave your review",
-    nl: "Laat je review achter",
-    de: "Bewertung abgeben",
-    sv: "Lämna din recension",
-    da: "Giv din anmeldelse",
-    no: "Gi din anmeldelse",
-  };
-
-  const unsubscribeText: Record<string, string> = {
-    en: "Unsubscribe",
-    nl: "Uitschrijven",
-    de: "Abmelden",
-    sv: "Avprenumerera",
-    da: "Afmeld",
-    no: "Avmeld",
-  };
-
+  const reviewUrl = `https://reviews-verified.com/${brandSlug}`;
   const unsubscribeUrl = `https://reviews-verified.com/unsubscribe?email=${encodeURIComponent(to)}`;
+
+  const rawSubject = emailSubject || DEFAULT_SUBJECTS[language] || DEFAULT_SUBJECTS.en;
+  const rawBody = emailBody || DEFAULT_BODIES[language] || DEFAULT_BODIES.en;
+  const subject = replaceVars(rawSubject, firstName, brandName);
+  const bodyText = replaceVars(rawBody, firstName, brandName);
+
+  const ctaLabel = CTA_LABELS[language] || CTA_LABELS.en;
+  const unsubLabel = UNSUBSCRIBE_LABELS[language] || UNSUBSCRIBE_LABELS.en;
+
+  const bodyHtml = bodyText.split("\n").map((line) =>
+    `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`
+  ).join("\n");
 
   const html = `
 <!DOCTYPE html>
@@ -77,18 +147,10 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
       </div>
       <!-- Body -->
       <div style="padding:32px 28px 36px;">
-        <p style="font-size:1rem;color:#1a1a1a;margin:0 0 20px;line-height:1.6;">
-          ${greeting[language] || greeting.en}
-        </p>
-        <p style="font-size:1rem;color:#444;margin:0 0 12px;line-height:1.6;">
-          ${t.headingText}
-        </p>
-        <p style="font-size:0.95rem;color:#777;margin:0 0 28px;line-height:1.5;">
-          ${t.subText}
-        </p>
-        <div style="text-align:center;">
+        ${bodyHtml}
+        <div style="text-align:center;margin-top:28px;">
           <a href="${reviewUrl}" style="display:inline-block;padding:14px 36px;background:${primaryColor};color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
-            ${cta[language] || cta.en}
+            ${ctaLabel}
           </a>
         </div>
       </div>
@@ -96,7 +158,7 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
     <!-- Unsubscribe -->
     <div style="text-align:center;padding:20px 0 0;">
       <a href="${unsubscribeUrl}" style="color:#999;font-size:0.75rem;text-decoration:underline;">
-        ${unsubscribeText[language] || unsubscribeText.en}
+        ${unsubLabel}
       </a>
     </div>
   </div>

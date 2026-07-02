@@ -19,6 +19,8 @@ model Brand {
   shopifyClientId     String   @default("")
   shopifyClientSecret String   @default("")
   shopifyAccessToken  String   @default("")
+  emailSubject        String   @default("")
+  emailBody           String   @default("")
   webhookId           String   @default("")
   emailEnabled    Boolean  @default(false)
   emailDelayMin   Int      @default(30)

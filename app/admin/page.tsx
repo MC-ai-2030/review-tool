@@ -281,6 +281,10 @@ export default function AdminPage() {
                         Geen e-mail
                       </span>
                     )}
+                    <a href={`/admin/email/${brand.id}`}
+                      className="text-xs text-blue-500 hover:underline flex-shrink-0">
+                      E-mail
+                    </a>
                     <a href={`${baseUrl}/${brand.slug}`} target="_blank" rel="noopener noreferrer"
                       className="text-xs text-blue-500 hover:underline flex-shrink-0">
                       Bekijk

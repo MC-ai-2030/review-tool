@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
       logoUrl: brand.logoUrl,
       primaryColor: brand.primaryColor,
       language: brand.language,
+      emailSubject: brand.emailSubject,
+      emailBody: brand.emailBody,
       scheduledAt,
     });
 

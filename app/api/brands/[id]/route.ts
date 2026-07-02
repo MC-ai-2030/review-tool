@@ -14,6 +14,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       ...(data.primaryColor !== undefined && { primaryColor: data.primaryColor }),
       ...(data.trustpilotUrl !== undefined && { trustpilotUrl: data.trustpilotUrl }),
       ...(data.language !== undefined && { language: data.language }),
+      ...(data.emailSubject !== undefined && { emailSubject: data.emailSubject }),
+      ...(data.emailBody !== undefined && { emailBody: data.emailBody }),
     },
   });
 
