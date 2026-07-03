@@ -22,8 +22,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public: Shopify webhooks + unsubscribe
-  if (pathname === "/api/webhooks/shopify" || pathname === "/api/unsubscribe" || pathname === "/unsubscribe") {
+  // Public: Shopify webhooks, unsubscribe, cron
+  if (pathname === "/api/webhooks/shopify" || pathname === "/api/unsubscribe" || pathname === "/unsubscribe" || pathname === "/api/cron") {
     return NextResponse.next();
   }
 

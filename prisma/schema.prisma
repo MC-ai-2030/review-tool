@@ -8,24 +8,36 @@ datasource db {
 }
 
 model Brand {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  name            String
-  logoUrl         String   @default("")
-  primaryColor    String   @default("#000000")
-  trustpilotUrl   String
-  language        String   @default("en")
-  shopifyDomain       String   @default("")
-  shopifyClientId     String   @default("")
-  shopifyClientSecret String   @default("")
-  shopifyAccessToken  String   @default("")
-  emailSubject        String   @default("")
-  emailBody           String   @default("")
-  webhookId           String   @default("")
-  emailEnabled    Boolean  @default(false)
-  emailDelayMin   Int      @default(30)
-  createdAt       DateTime @default(now())
-  sentEmails      SentEmail[]
+  id                  String      @id @default(cuid())
+  slug                String      @unique
+  name                String
+  logoUrl             String      @default("")
+  primaryColor        String      @default("#000000")
+  trustpilotUrl       String
+  language            String      @default("en")
+  shopifyDomain       String      @default("")
+  shopifyClientId     String      @default("")
+  shopifyClientSecret String      @default("")
+  shopifyAccessToken  String      @default("")
+  webhookId           String      @default("")
+  emailEnabled        Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  flowEmails          FlowEmail[]
+  sentEmails          SentEmail[]
+}
+
+model FlowEmail {
+  id           String  @id @default(cuid())
+  brand        Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId      String
+  position     Int
+  enabled      Boolean @default(true)
+  delayMinutes Int     @default(30)
+  subject      String  @default("")
+  body         String  @default("")
+
+  @@unique([brandId, position])
+  @@index([brandId])
 }
 
 model SentEmail {
@@ -33,6 +45,7 @@ model SentEmail {
   brand           Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   brandId         String
   orderId         String
+  flowPosition    Int      @default(1)
   customerEmail   String
   customerName    String   @default("")
   scheduledAt     DateTime
@@ -40,8 +53,9 @@ model SentEmail {
   status          String   @default("scheduled")
   createdAt       DateTime @default(now())
 
-  @@unique([brandId, orderId])
+  @@unique([brandId, orderId, flowPosition])
   @@index([brandId])
+  @@index([status, scheduledAt])
 }
 
 model Unsubscribed {

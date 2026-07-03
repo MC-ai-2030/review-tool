@@ -2,31 +2,35 @@ import { prisma } from "@/app/lib/prisma";
 import { sendReviewEmail } from "@/app/lib/email";
 import { NextRequest } from "next/server";
 
+const RESEND_MAX_SCHEDULE_MS = 72 * 60 * 60 * 1000; // 72 hours
+
 export async function POST(request: NextRequest) {
   const shopDomain = request.headers.get("x-shopify-shop-domain") || "";
 
-  // Find brand by Shopify domain
   const brand = await prisma.brand.findFirst({
     where: { shopifyDomain: shopDomain, emailEnabled: true },
+    include: {
+      flowEmails: {
+        where: { enabled: true },
+        orderBy: { position: "asc" },
+      },
+    },
   });
 
   if (!brand) {
     return Response.json({ skipped: true, reason: "brand not found or email disabled" });
   }
 
+  if (brand.flowEmails.length === 0) {
+    return Response.json({ skipped: true, reason: "no flow emails configured" });
+  }
+
   const order = await request.json();
 
-  // Extract customer info
   const email = order.email || order.customer?.email;
   if (!email) {
     return Response.json({ skipped: true, reason: "no customer email" });
   }
-
-  const customerName = order.customer
-    ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
-    : "";
-
-  const orderId = String(order.id);
 
   // Check if unsubscribed
   const unsubscribed = await prisma.unsubscribed.findUnique({
@@ -36,48 +40,79 @@ export async function POST(request: NextRequest) {
     return Response.json({ skipped: true, reason: "unsubscribed" });
   }
 
-  // Check if already sent
-  const existing = await prisma.sentEmail.findUnique({
-    where: { brandId_orderId: { brandId: brand.id, orderId } },
-  });
-  if (existing) {
-    return Response.json({ skipped: true, reason: "already scheduled" });
-  }
+  const customerName = order.customer
+    ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
+    : "";
 
-  // Schedule email
-  const scheduledAt = new Date(Date.now() + brand.emailDelayMin * 60 * 1000);
+  const orderId = String(order.id);
+  const now = Date.now();
+  const scheduled: { position: number; scheduledAt: string }[] = [];
 
-  try {
-    await sendReviewEmail({
-      to: email,
-      customerName,
-      brandName: brand.name,
-      brandSlug: brand.slug,
-      logoUrl: brand.logoUrl,
-      primaryColor: brand.primaryColor,
-      language: brand.language,
-      emailSubject: brand.emailSubject,
-      emailBody: brand.emailBody,
-      scheduledAt,
-    });
-
-    await prisma.sentEmail.create({
-      data: {
-        brandId: brand.id,
-        orderId,
-        customerEmail: email,
-        customerName,
-        scheduledAt,
-        status: "scheduled",
+  for (const flowEmail of brand.flowEmails) {
+    // Check if already sent for this order + position
+    const existing = await prisma.sentEmail.findUnique({
+      where: {
+        brandId_orderId_flowPosition: {
+          brandId: brand.id,
+          orderId,
+          flowPosition: flowEmail.position,
+        },
       },
     });
+    if (existing) continue;
 
-    return Response.json({ success: true, email, scheduledAt: scheduledAt.toISOString() });
-  } catch (error) {
-    console.error("Email error:", error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    const scheduledAt = new Date(now + flowEmail.delayMinutes * 60 * 1000);
+    const delayMs = flowEmail.delayMinutes * 60 * 1000;
+
+    if (delayMs <= RESEND_MAX_SCHEDULE_MS) {
+      // Within 72h: schedule via Resend directly
+      try {
+        await sendReviewEmail({
+          to: email,
+          customerName,
+          brandName: brand.name,
+          brandSlug: brand.slug,
+          logoUrl: brand.logoUrl,
+          primaryColor: brand.primaryColor,
+          language: brand.language,
+          emailSubject: flowEmail.subject,
+          emailBody: flowEmail.body,
+          scheduledAt,
+        });
+
+        await prisma.sentEmail.create({
+          data: {
+            brandId: brand.id,
+            orderId,
+            flowPosition: flowEmail.position,
+            customerEmail: email,
+            customerName,
+            scheduledAt,
+            status: "scheduled",
+          },
+        });
+
+        scheduled.push({ position: flowEmail.position, scheduledAt: scheduledAt.toISOString() });
+      } catch (error) {
+        console.error(`Flow email ${flowEmail.position} error:`, error);
+      }
+    } else {
+      // Beyond 72h: store as pending, cron will pick it up later
+      await prisma.sentEmail.create({
+        data: {
+          brandId: brand.id,
+          orderId,
+          flowPosition: flowEmail.position,
+          customerEmail: email,
+          customerName,
+          scheduledAt,
+          status: "pending",
+        },
+      });
+
+      scheduled.push({ position: flowEmail.position, scheduledAt: scheduledAt.toISOString() });
+    }
   }
+
+  return Response.json({ success: true, email, scheduled });
 }
