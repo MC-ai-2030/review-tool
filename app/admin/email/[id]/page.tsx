@@ -111,6 +111,9 @@ export default function FlowEditorPage() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [testSending, setTestSending] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     const [brandsRes, flowRes] = await Promise.all([
@@ -172,6 +175,29 @@ export default function FlowEditorPage() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function handleTestSend() {
+    if (!testEmail || !active) return;
+    setTestSending(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`/api/brands/${id}/test-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: testEmail, subject: active.subject, body: active.body }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTestResult("Testmail verstuurd!");
+      } else {
+        setTestResult(data.error || "Verzenden mislukt");
+      }
+    } catch {
+      setTestResult("Verzenden mislukt");
+    }
+    setTestSending(false);
+    setTimeout(() => setTestResult(null), 4000);
   }
 
   function replaceVars(text: string): string {
@@ -280,6 +306,25 @@ export default function FlowEditorPage() {
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{voornaam}"}</span> — voornaam van de klant</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{merknaam}"}</span> — naam van het merk</p>
                 <p className="text-gray-400 pt-1">De review-knop en uitschrijflink worden automatisch toegevoegd.</p>
+              </div>
+
+              {/* Test versturen */}
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Testmail versturen</p>
+                <div className="flex gap-2">
+                  <input type="email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="E-mailadres"
+                    className={`${inputClass} flex-1`} />
+                  <button onClick={handleTestSend} disabled={testSending || !testEmail}
+                    className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 cursor-pointer disabled:opacity-50 whitespace-nowrap">
+                    {testSending ? "Versturen..." : "Verstuur test"}
+                  </button>
+                </div>
+                {testResult && (
+                  <p className={`text-xs mt-2 ${testResult.includes("mislukt") ? "text-red-500" : "text-green-600"}`}>
+                    {testResult}
+                  </p>
+                )}
               </div>
             </div>
 
