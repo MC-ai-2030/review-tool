@@ -23,7 +23,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       language: brand.language,
       emailSubject: subject || "",
       emailBody: body || "",
-      scheduledAt: new Date(),
     });
 
     return Response.json({ success: true });

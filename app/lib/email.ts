@@ -14,7 +14,7 @@ interface SendReviewEmailParams {
   language: string;
   emailSubject: string;
   emailBody: string;
-  scheduledAt: Date;
+  scheduledAt?: Date;
 }
 
 const DEFAULT_SUBJECTS: Record<string, string> = {
@@ -170,7 +170,7 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
     to,
     subject,
     html,
-    scheduledAt: scheduledAt.toISOString(),
+    ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
   });
 
   return result;
