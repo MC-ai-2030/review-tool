@@ -188,6 +188,29 @@ export default function AdminPage() {
                 </ul>
                 <p className="mt-1">Zo krijg je meer positieve Trustpilot reviews en waardevolle interne feedback.</p>
               </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Optioneel: versturen vanaf eigen domein</h3>
+                <p className="mb-2">Standaard worden e-mails verstuurd vanaf <span className="font-mono">noreply@reviews-verified.com</span>. Voor betere aflevering kun je mailen vanaf je eigen domein (bijv. <span className="font-mono">reviews@jouwmerk.com</span>).</p>
+                <ol className="list-decimal list-inside space-y-1.5 ml-1">
+                  <li>Ga naar <strong>resend.com</strong> → <strong>Domains</strong> → <strong>Add Domain</strong></li>
+                  <li>Voer je domein in (bijv. <span className="font-mono">jouwmerk.com</span>)</li>
+                  <li>Resend toont <strong>3 DNS records</strong> die je moet toevoegen bij je domeinregistrar (GoDaddy, Cloudflare, etc.):</li>
+                </ol>
+                <ul className="list-disc list-inside space-y-1 ml-6 mt-1 mb-2">
+                  <li><strong>SPF</strong> — TXT record voor verzendautorisatie</li>
+                  <li><strong>DKIM</strong> — TXT record voor e-mailverificatie</li>
+                  <li><strong>DMARC</strong> — TXT record (optioneel maar aanbevolen)</li>
+                </ul>
+                <ol className="list-decimal list-inside space-y-1.5 ml-1" start={4}>
+                  <li>Voeg de records toe bij je DNS-provider en klik <strong>"Verify"</strong> in Resend</li>
+                  <li>Ga terug naar deze admin → <strong>Bewerken</strong> bij je merk</li>
+                  <li>Vul in bij <strong>Afzender e-mail</strong>: bijv. <span className="font-mono">reviews@jouwmerk.com</span></li>
+                  <li>Optioneel: vul een <strong>Afzender naam</strong> in (anders wordt de merknaam gebruikt)</li>
+                  <li>Klik <strong>Opslaan</strong></li>
+                </ol>
+                <p className="mt-2">Alle e-mails voor dit merk worden nu verstuurd vanaf je eigen domein. Dit verbetert de aflevering en voorkomt spam-classificatie.</p>
+              </div>
             </div>
           </div>
         </div>
