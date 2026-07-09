@@ -201,7 +201,12 @@ export default function FlowEditorPage() {
   }
 
   function replaceVars(text: string): string {
-    return text.replace(/\{voornaam\}/g, "Julia").replace(/\{merknaam\}/g, brand?.name || "Brand").replace(/\{ordernummer\}/g, "#1234");
+    const reviewUrl = `https://reviews-verified.com/${brand?.slug || "brand"}`;
+    return text
+      .replace(/\{voornaam\}/g, "Julia")
+      .replace(/\{merknaam\}/g, brand?.name || "Brand")
+      .replace(/\{ordernummer\}/g, "#1234")
+      .replace(/\{link\}/g, reviewUrl);
   }
 
   if (!brand) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Laden...</div>;
@@ -306,7 +311,7 @@ export default function FlowEditorPage() {
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{voornaam}"}</span> — voornaam van de klant</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{merknaam}"}</span> — naam van het merk</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{ordernummer}"}</span> — ordernummer van de bestelling</p>
-                <p className="text-gray-400 pt-1">De review-knop wordt automatisch toegevoegd.</p>
+                <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{link}"}</span> — link naar de review-pagina</p>
               </div>
 
               {/* Test versturen */}

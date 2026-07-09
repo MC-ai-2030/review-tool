@@ -110,11 +110,19 @@ const UNSUBSCRIBE_LABELS: Record<string, string> = {
   no: "Avmeld",
 };
 
-function replaceVars(text: string, firstName: string, brandName: string, orderNumber: string): string {
-  return text
+function replaceVars(text: string, firstName: string, brandName: string, orderNumber: string, reviewUrl: string, isHtml: boolean): string {
+  let result = text
     .replace(/\{voornaam\}/g, firstName || "")
     .replace(/\{merknaam\}/g, brandName)
     .replace(/\{ordernummer\}/g, orderNumber || "");
+
+  if (isHtml) {
+    result = result.replace(/\{link\}/g, `<a href="${reviewUrl}" style="color:#1a1a1a;font-weight:600;">${reviewUrl}</a>`);
+  } else {
+    result = result.replace(/\{link\}/g, reviewUrl);
+  }
+
+  return result;
 }
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
@@ -124,8 +132,8 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
 
   const rawSubject = emailSubject || DEFAULT_SUBJECTS[language] || DEFAULT_SUBJECTS.en;
   const rawBody = emailBody || DEFAULT_BODIES[language] || DEFAULT_BODIES.en;
-  const subject = replaceVars(rawSubject, firstName, brandName, orderNumber || "");
-  const bodyText = replaceVars(rawBody, firstName, brandName, orderNumber || "");
+  const subject = replaceVars(rawSubject, firstName, brandName, orderNumber || "", reviewUrl, false);
+  const bodyText = replaceVars(rawBody, firstName, brandName, orderNumber || "", reviewUrl, true);
 
   const ctaLabel = CTA_LABELS[language] || CTA_LABELS.en;
 
