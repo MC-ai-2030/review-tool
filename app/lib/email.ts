@@ -158,6 +158,11 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
       <!-- Body -->
       <div style="padding:32px 28px 36px;">
         ${bodyHtml}
+        <div style="text-align:center;margin-top:28px;">
+          <a href="${reviewUrl}" style="display:inline-block;padding:14px 36px;background:#000000;color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
+            ${ctaLabel}
+          </a>
+        </div>
       </div>
     </div>
   </div>

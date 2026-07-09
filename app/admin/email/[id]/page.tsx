@@ -362,6 +362,11 @@ export default function FlowEditorPage() {
                         </p>
                       ))}
 
+                      <div className="text-center mt-6">
+                        <span className="inline-block px-8 py-3 text-white text-sm font-semibold rounded-lg bg-black">
+                          {CTA_LABELS[lang] || CTA_LABELS.en}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
