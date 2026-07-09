@@ -23,6 +23,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       language: brand.language,
       emailSubject: subject || "",
       emailBody: body || "",
+      senderEmail: brand.senderEmail || undefined,
+      senderName: brand.senderName || undefined,
     });
 
     return Response.json({ success: true });

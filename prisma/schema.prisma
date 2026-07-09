@@ -19,6 +19,8 @@ model Brand {
   shopifyClientId     String      @default("")
   shopifyClientSecret String      @default("")
   shopifyAccessToken  String      @default("")
+  senderEmail         String      @default("")
+  senderName          String      @default("")
   webhookId           String      @default("")
   emailEnabled        Boolean     @default(false)
   createdAt           DateTime    @default(now())

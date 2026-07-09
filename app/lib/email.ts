@@ -14,6 +14,8 @@ interface SendReviewEmailParams {
   language: string;
   emailSubject: string;
   emailBody: string;
+  senderEmail?: string;
+  senderName?: string;
   scheduledAt?: Date;
 }
 
@@ -114,7 +116,7 @@ function replaceVars(text: string, firstName: string, brandName: string): string
 }
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, scheduledAt } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, scheduledAt } = params;
   const firstName = customerName.split(" ")[0] || "";
   const reviewUrl = `https://reviews-verified.com/${brandSlug}`;
   const unsubscribeUrl = `https://reviews-verified.com/unsubscribe?email=${encodeURIComponent(to)}`;
@@ -165,8 +167,11 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
 </body>
 </html>`;
 
+  const fromName = senderName || brandName;
+  const fromEmail = senderEmail || "noreply@reviews-verified.com";
+
   const result = await getResend().emails.send({
-    from: `${brandName} <noreply@reviews-verified.com>`,
+    from: `${fromName} <${fromEmail}>`,
     to,
     subject,
     html,

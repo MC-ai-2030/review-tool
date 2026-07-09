@@ -77,6 +77,8 @@ export async function POST(request: NextRequest) {
           language: brand.language,
           emailSubject: flowEmail.subject,
           emailBody: flowEmail.body,
+          senderEmail: brand.senderEmail || undefined,
+          senderName: brand.senderName || undefined,
           scheduledAt,
         });
 

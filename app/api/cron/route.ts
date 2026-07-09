@@ -54,6 +54,8 @@ export async function GET() {
         language: entry.brand.language,
         emailSubject: flowEmail.subject,
         emailBody: flowEmail.body,
+        senderEmail: entry.brand.senderEmail || undefined,
+        senderName: entry.brand.senderName || undefined,
         scheduledAt: entry.scheduledAt,
       });
 

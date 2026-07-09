@@ -11,9 +11,10 @@ interface Brand {
   primaryColor: string;
   trustpilotUrl: string;
   language: string;
+  senderEmail: string;
+  senderName: string;
   shopifyDomain: string;
   emailEnabled: boolean;
-  emailDelayMin: number;
 }
 
 const inputClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
@@ -246,6 +247,10 @@ export default function AdminPage() {
                         placeholder="Trustpilot URL" className={inputClass} />
                       <input type="url" value={editData.logoUrl || ""} onChange={(e) => setEditData({ ...editData, logoUrl: e.target.value })}
                         placeholder="Logo URL" className={inputClass} />
+                      <input type="email" value={editData.senderEmail || ""} onChange={(e) => setEditData({ ...editData, senderEmail: e.target.value })}
+                        placeholder="Afzender e-mail (bijv. reviews@domein.com)" className={inputClass} />
+                      <input type="text" value={editData.senderName || ""} onChange={(e) => setEditData({ ...editData, senderName: e.target.value })}
+                        placeholder="Afzender naam (optioneel)" className={inputClass} />
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <input type="color" value={editData.primaryColor || "#000000"} onChange={(e) => setEditData({ ...editData, primaryColor: e.target.value })}
@@ -273,8 +278,8 @@ export default function AdminPage() {
                       {LANGUAGES[brand.language]?.flag || ""} {LANGUAGES[brand.language]?.label || brand.language}
                     </span>
                     {brand.emailEnabled ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
-                        E-mail actief
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0" title={brand.senderEmail || "noreply@reviews-verified.com"}>
+                        {brand.senderEmail ? `via ${brand.senderEmail}` : "E-mail actief"}
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
@@ -312,8 +317,6 @@ export default function AdminPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-gray-600">Shopify gekoppeld: <span className="font-mono text-gray-900">{brand.shopifyDomain}</span></span>
-                      <span className="text-gray-400">·</span>
-                      <span className="text-gray-500">{brand.emailDelayMin} min na bestelling</span>
                       <div className="flex-1" />
                       <button onClick={() => handleDisconnectShopify(brand.id)}
                         className="text-xs text-red-500 hover:text-red-700 cursor-pointer">
