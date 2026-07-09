@@ -201,7 +201,7 @@ export default function FlowEditorPage() {
   }
 
   function replaceVars(text: string): string {
-    return text.replace(/\{voornaam\}/g, "Julia").replace(/\{merknaam\}/g, brand?.name || "Brand");
+    return text.replace(/\{voornaam\}/g, "Julia").replace(/\{merknaam\}/g, brand?.name || "Brand").replace(/\{ordernummer\}/g, "#1234");
   }
 
   if (!brand) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Laden...</div>;
@@ -305,7 +305,8 @@ export default function FlowEditorPage() {
                 <p className="font-medium text-gray-700">Beschikbare variabelen:</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{voornaam}"}</span> — voornaam van de klant</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{merknaam}"}</span> — naam van het merk</p>
-                <p className="text-gray-400 pt-1">De review-knop en uitschrijflink worden automatisch toegevoegd.</p>
+                <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{ordernummer}"}</span> — ordernummer van de bestelling</p>
+                <p className="text-gray-400 pt-1">De review-knop wordt automatisch toegevoegd.</p>
               </div>
 
               {/* Test versturen */}
@@ -365,9 +366,6 @@ export default function FlowEditorPage() {
                     </div>
                   </div>
 
-                  <div className="text-center py-4 border-t border-gray-50">
-                    <span className="text-xs text-gray-400 underline">{UNSUB_LABELS[lang] || UNSUB_LABELS.en}</span>
-                  </div>
                 </div>
               </div>
             </div>

@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     : "";
 
   const orderId = String(order.id);
+  const orderNumber = order.order_number ? String(order.order_number) : order.name || "";
   const now = Date.now();
   const scheduled: { position: number; scheduledAt: string }[] = [];
 
@@ -79,6 +80,7 @@ export async function POST(request: NextRequest) {
           emailBody: flowEmail.body,
           senderEmail: brand.senderEmail || undefined,
           senderName: brand.senderName || undefined,
+          orderNumber,
           scheduledAt,
         });
 

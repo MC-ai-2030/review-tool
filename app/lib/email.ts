@@ -16,6 +16,7 @@ interface SendReviewEmailParams {
   emailBody: string;
   senderEmail?: string;
   senderName?: string;
+  orderNumber?: string;
   scheduledAt?: Date;
 }
 
@@ -109,25 +110,24 @@ const UNSUBSCRIBE_LABELS: Record<string, string> = {
   no: "Avmeld",
 };
 
-function replaceVars(text: string, firstName: string, brandName: string): string {
+function replaceVars(text: string, firstName: string, brandName: string, orderNumber: string): string {
   return text
     .replace(/\{voornaam\}/g, firstName || "")
-    .replace(/\{merknaam\}/g, brandName);
+    .replace(/\{merknaam\}/g, brandName)
+    .replace(/\{ordernummer\}/g, orderNumber || "");
 }
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, scheduledAt } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, scheduledAt } = params;
   const firstName = customerName.split(" ")[0] || "";
   const reviewUrl = `https://reviews-verified.com/${brandSlug}`;
-  const unsubscribeUrl = `https://reviews-verified.com/unsubscribe?email=${encodeURIComponent(to)}`;
 
   const rawSubject = emailSubject || DEFAULT_SUBJECTS[language] || DEFAULT_SUBJECTS.en;
   const rawBody = emailBody || DEFAULT_BODIES[language] || DEFAULT_BODIES.en;
-  const subject = replaceVars(rawSubject, firstName, brandName);
-  const bodyText = replaceVars(rawBody, firstName, brandName);
+  const subject = replaceVars(rawSubject, firstName, brandName, orderNumber || "");
+  const bodyText = replaceVars(rawBody, firstName, brandName, orderNumber || "");
 
   const ctaLabel = CTA_LABELS[language] || CTA_LABELS.en;
-  const unsubLabel = UNSUBSCRIBE_LABELS[language] || UNSUBSCRIBE_LABELS.en;
 
   const bodyHtml = bodyText.split("\n").map((line) =>
     `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`
@@ -156,12 +156,6 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
           </a>
         </div>
       </div>
-    </div>
-    <!-- Unsubscribe -->
-    <div style="text-align:center;padding:20px 0 0;">
-      <a href="${unsubscribeUrl}" style="color:#999;font-size:0.75rem;text-decoration:underline;">
-        ${unsubLabel}
-      </a>
     </div>
   </div>
 </body>
