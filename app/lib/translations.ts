@@ -21,6 +21,7 @@ export const LANGUAGES: Record<string, { label: string; flag: string }> = {
   sv: { label: "Svenska", flag: "🇸🇪" },
   da: { label: "Dansk", flag: "🇩🇰" },
   no: { label: "Norsk", flag: "🇳🇴" },
+  pl: { label: "Polski", flag: "🇵🇱" },
 };
 
 const translations: Record<string, Translations> = {
@@ -136,6 +137,25 @@ const translations: Record<string, Translations> = {
       { id: "disappointed", emoji: "\ud83d\ude1e", label: "SKUFFET" },
       { id: "okay", emoji: "\ud83d\ude10", label: "DET VAR GREIT" },
       { id: "loved", emoji: "\ud83d\ude0d", label: "ELSKET DET" },
+    ],
+  },
+  pl: {
+    headingText: "Z przyjemnością oferujemy Ci 50% zwrotu za zamówienie.",
+    subText: "Twoja szczera opinia pomaga nam się rozwijać i bardzo ją cenimy.",
+    rewardCheckboxText: "Wyrażam zgodę na otrzymanie nagrody drogą mailową.",
+    experienceHeading: "Jak oceniasz swoje doświadczenie?",
+    experienceSubText: "Wybierz uczucie, które najlepiej opisuje Twoje wrażenia.",
+    feedbackHeading: "Chętnie dowiemy się więcej",
+    feedbackSubText: "Powiedz nam, co możemy poprawić, abyśmy mogli ulepszyć Twoje doświadczenie.",
+    feedbackPlaceholder: "Podziel się swoimi przemyśleniami...",
+    feedbackThankYou: "Dziękujemy za opinię! Wykorzystamy ją, aby się poprawić.",
+    redirectText: "Dziękujemy! Bardzo się cieszymy!",
+    redirectSubText: "Przekierowujemy Cię do Trustpilot...",
+    sendButton: "Wyślij opinię",
+    sentiments: [
+      { id: "disappointed", emoji: "\ud83d\ude1e", label: "ROZCZAROWANY" },
+      { id: "okay", emoji: "\ud83d\ude10", label: "BYŁO OKEJ" },
+      { id: "loved", emoji: "\ud83d\ude0d", label: "WSPANIALE" },
     ],
   },
 };

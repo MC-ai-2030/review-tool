@@ -27,6 +27,7 @@ const DEFAULT_SUBJECTS: Record<string, string> = {
   sv: "Hur var din upplevelse med {merknaam}?",
   da: "Hvordan var din oplevelse med {merknaam}?",
   no: "Hvordan var opplevelsen din med {merknaam}?",
+  pl: "Jak oceniasz swoje doświadczenie z {merknaam}?",
 };
 
 const DEFAULT_BODIES: Record<string, string> = {
@@ -90,6 +91,16 @@ Klikk på knappen nedenfor for å gi din anmeldelse.
 
 Med vennlig hilsen,
 {merknaam}`,
+  pl: `Cześć {voornaam},
+
+Dziękujemy, że jesteś klientem {merknaam}!
+
+Z przyjemnością oferujemy Ci 50% zwrotu za zamówienie. Twoja szczera opinia pomaga nam się rozwijać.
+
+Kliknij przycisk poniżej, aby zostawić swoją opinię.
+
+Z poważaniem,
+{merknaam}`,
 };
 
 const CTA_LABELS: Record<string, string> = {
@@ -99,6 +110,7 @@ const CTA_LABELS: Record<string, string> = {
   sv: "Lämna din recension",
   da: "Giv din anmeldelse",
   no: "Gi din anmeldelse",
+  pl: "Zostaw opinię",
 };
 
 const UNSUBSCRIBE_LABELS: Record<string, string> = {
