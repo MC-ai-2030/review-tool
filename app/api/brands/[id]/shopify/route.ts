@@ -78,6 +78,31 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const webhookData = await webhookRes.json();
   const webhookId = String(webhookData.webhook.id);
 
+  // Register webhook for checkouts/create (abandoned checkout)
+  let checkoutWebhookId = "";
+  try {
+    const checkoutRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
+      method: "POST",
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        webhook: {
+          topic: "checkouts/create",
+          address: WEBHOOK_URL,
+          format: "json",
+        },
+      }),
+    });
+    if (checkoutRes.ok) {
+      const checkoutData = await checkoutRes.json();
+      checkoutWebhookId = String(checkoutData.webhook.id);
+    }
+  } catch {
+    // Checkout webhook optional — may require read_checkouts scope
+  }
+
   // Save to database
   await prisma.brand.update({
     where: { id },
@@ -87,11 +112,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       shopifyClientSecret: clientSecret,
       shopifyAccessToken: accessToken,
       webhookId,
+      checkoutWebhookId,
       emailEnabled: true,
     },
   });
 
-  return Response.json({ success: true, webhookId });
+  return Response.json({ success: true, webhookId, checkoutWebhookId });
 }
 
 // Disconnect Shopify: remove webhook
@@ -99,14 +125,17 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id } = await params;
   const brand = await prisma.brand.findUniqueOrThrow({ where: { id } });
 
-  if (brand.webhookId && brand.shopifyDomain && brand.shopifyAccessToken) {
-    await fetch(
-      `https://${brand.shopifyDomain}/admin/api/2024-01/webhooks/${brand.webhookId}.json`,
-      {
-        method: "DELETE",
-        headers: { "X-Shopify-Access-Token": brand.shopifyAccessToken },
-      }
-    ).catch(() => {});
+  if (brand.shopifyDomain && brand.shopifyAccessToken) {
+    if (brand.webhookId) {
+      await fetch(`https://${brand.shopifyDomain}/admin/api/2024-01/webhooks/${brand.webhookId}.json`, {
+        method: "DELETE", headers: { "X-Shopify-Access-Token": brand.shopifyAccessToken },
+      }).catch(() => {});
+    }
+    if (brand.checkoutWebhookId) {
+      await fetch(`https://${brand.shopifyDomain}/admin/api/2024-01/webhooks/${brand.checkoutWebhookId}.json`, {
+        method: "DELETE", headers: { "X-Shopify-Access-Token": brand.shopifyAccessToken },
+      }).catch(() => {});
+    }
   }
 
   await prisma.brand.update({
@@ -117,6 +146,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       shopifyClientSecret: "",
       shopifyAccessToken: "",
       webhookId: "",
+      checkoutWebhookId: "",
       emailEnabled: false,
     },
   });

@@ -115,10 +115,80 @@ function delayLabel(minutes: number): string {
   return `${minutes / 1440} dag${minutes / 1440 !== 1 ? "en" : ""}`;
 }
 
+const DEFAULT_AC_SUBJECTS: Record<string, string> = {
+  en: "You left something behind, {voornaam}!",
+  nl: "Je bent iets vergeten, {voornaam}!",
+  de: "Sie haben etwas vergessen, {voornaam}!",
+  sv: "Du glömde något, {voornaam}!",
+  da: "Du glemte noget, {voornaam}!",
+  no: "Du glemte noe, {voornaam}!",
+  pl: "Zapomniałeś o czymś, {voornaam}!",
+};
+
+const DEFAULT_AC_BODY: Record<string, string> = {
+  en: `Hi {voornaam},
+
+It looks like you left some items in your cart at {merknaam}.
+
+Don't worry — your cart is still saved. Click the button below to complete your order.
+
+Kind regards,
+{merknaam}`,
+  nl: `Hoi {voornaam},
+
+Het lijkt erop dat je nog wat producten in je winkelwagen hebt achtergelaten bij {merknaam}.
+
+Geen zorgen — je winkelwagen is bewaard. Klik op de knop hieronder om je bestelling af te ronden.
+
+Met vriendelijke groet,
+{merknaam}`,
+  de: `Hallo {voornaam},
+
+Es sieht so aus, als hätten Sie einige Artikel in Ihrem Warenkorb bei {merknaam} vergessen.
+
+Keine Sorge — Ihr Warenkorb ist gespeichert. Klicken Sie auf den Button unten, um Ihre Bestellung abzuschließen.
+
+Mit freundlichen Grüßen,
+{merknaam}`,
+  sv: `Hej {voornaam},
+
+Det verkar som att du lämnade några varor i din kundvagn hos {merknaam}.
+
+Oroa dig inte — din kundvagn är sparad. Klicka på knappen nedan för att slutföra din beställning.
+
+Med vänliga hälsningar,
+{merknaam}`,
+  da: `Hej {voornaam},
+
+Det ser ud til, at du har efterladt nogle varer i din indkøbskurv hos {merknaam}.
+
+Bare rolig — din indkøbskurv er gemt. Klik på knappen nedenfor for at afslutte din ordre.
+
+Med venlig hilsen,
+{merknaam}`,
+  no: `Hei {voornaam},
+
+Det ser ut som du har lagt igjen noen varer i handlekurven din hos {merknaam}.
+
+Ikke bekymre deg — handlekurven din er lagret. Klikk på knappen nedenfor for å fullføre bestillingen.
+
+Med vennlig hilsen,
+{merknaam}`,
+  pl: `Cześć {voornaam},
+
+Wygląda na to, że zostawiłeś kilka produktów w koszyku w {merknaam}.
+
+Nie martw się — Twój koszyk jest zapisany. Kliknij przycisk poniżej, aby dokończyć zamówienie.
+
+Z poważaniem,
+{merknaam}`,
+};
+
 export default function FlowEditorPage() {
   const { id } = useParams();
   const router = useRouter();
   const [brand, setBrand] = useState<Brand | null>(null);
+  const [flowType, setFlowType] = useState<"review" | "abandoned_checkout">("review");
   const [emails, setEmails] = useState<FlowEmail[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -130,7 +200,7 @@ export default function FlowEditorPage() {
   const fetchData = useCallback(async () => {
     const [brandsRes, flowRes] = await Promise.all([
       fetch("/api/brands"),
-      fetch(`/api/brands/${id}/flow`),
+      fetch(`/api/brands/${id}/flow?type=${flowType}`),
     ]);
     const brands: Brand[] = await brandsRes.json();
     const b = brands.find((br) => br.id === id);
@@ -141,16 +211,21 @@ export default function FlowEditorPage() {
     if (flow.length > 0) {
       setEmails(flow);
     } else {
-      // Create default first email
+      const isAC = flowType === "abandoned_checkout";
       setEmails([{
         position: 1,
         enabled: true,
-        delayMinutes: 30,
-        subject: DEFAULT_SUBJECTS[b.language] || DEFAULT_SUBJECTS.en,
-        body: DEFAULT_BODY[b.language] || DEFAULT_BODY.en,
+        delayMinutes: isAC ? 60 : 30,
+        subject: isAC
+          ? (DEFAULT_AC_SUBJECTS[b.language] || DEFAULT_AC_SUBJECTS.en)
+          : (DEFAULT_SUBJECTS[b.language] || DEFAULT_SUBJECTS.en),
+        body: isAC
+          ? (DEFAULT_AC_BODY[b.language] || DEFAULT_AC_BODY.en)
+          : (DEFAULT_BODY[b.language] || DEFAULT_BODY.en),
       }]);
     }
-  }, [id]);
+    setActiveIdx(0);
+  }, [id, flowType]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -161,12 +236,13 @@ export default function FlowEditorPage() {
   function addEmail() {
     if (emails.length >= 5) return;
     const lang = brand?.language || "en";
+    const isAC = flowType === "abandoned_checkout";
     setEmails((prev) => [...prev, {
       position: prev.length + 1,
       enabled: true,
-      delayMinutes: prev.length === 0 ? 30 : 4320, // first: 30min, rest: 3 days
-      subject: DEFAULT_SUBJECTS[lang] || DEFAULT_SUBJECTS.en,
-      body: DEFAULT_BODY[lang] || DEFAULT_BODY.en,
+      delayMinutes: prev.length === 0 ? (isAC ? 60 : 30) : 4320,
+      subject: isAC ? (DEFAULT_AC_SUBJECTS[lang] || DEFAULT_AC_SUBJECTS.en) : (DEFAULT_SUBJECTS[lang] || DEFAULT_SUBJECTS.en),
+      body: isAC ? (DEFAULT_AC_BODY[lang] || DEFAULT_AC_BODY.en) : (DEFAULT_BODY[lang] || DEFAULT_BODY.en),
     }]);
     setActiveIdx(emails.length);
   }
@@ -182,7 +258,7 @@ export default function FlowEditorPage() {
     await fetch(`/api/brands/${id}/flow`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emails }),
+      body: JSON.stringify({ emails, flowType }),
     });
     setSaving(false);
     setSaved(true);
@@ -218,7 +294,8 @@ export default function FlowEditorPage() {
       .replace(/\{voornaam\}/g, "Julia")
       .replace(/\{merknaam\}/g, brand?.name || "Brand")
       .replace(/\{ordernummer\}/g, "#1234")
-      .replace(/\{link\}/g, reviewUrl);
+      .replace(/\{link\}/g, reviewUrl)
+      .replace(/\{checkout_url\}/g, "https://shop.example.com/checkout/recover/...");
   }
 
   if (!brand) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Laden...</div>;
@@ -236,6 +313,16 @@ export default function FlowEditorPage() {
         </button>
         <h1 className="text-lg font-bold">E-mail flow — {brand.name}</h1>
         <span className="text-xs text-gray-500">{LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}</span>
+        <div className="flex bg-gray-100 rounded-lg p-0.5 ml-2">
+          <button onClick={() => setFlowType("review")}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${flowType === "review" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+            Review
+          </button>
+          <button onClick={() => setFlowType("abandoned_checkout")}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${flowType === "abandoned_checkout" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+            Abandoned Checkout
+          </button>
+        </div>
         <div className="flex-1" />
         {saved && <span className="text-sm text-green-600">Opgeslagen!</span>}
         <button onClick={handleSave} disabled={saving}
@@ -324,6 +411,9 @@ export default function FlowEditorPage() {
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{merknaam}"}</span> — naam van het merk</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{ordernummer}"}</span> — ordernummer van de bestelling</p>
                 <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{link}"}</span> — link naar de review-pagina</p>
+                {flowType === "abandoned_checkout" && (
+                  <p><span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200">{"{checkout_url}"}</span> — link naar de verlaten winkelwagen</p>
+                )}
               </div>
 
               {/* Test versturen */}

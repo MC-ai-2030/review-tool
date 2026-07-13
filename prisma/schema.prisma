@@ -22,6 +22,7 @@ model Brand {
   senderEmail         String      @default("")
   senderName          String      @default("")
   webhookId           String      @default("")
+  checkoutWebhookId   String      @default("")
   emailEnabled        Boolean     @default(false)
   createdAt           DateTime    @default(now())
   flowEmails          FlowEmail[]
@@ -32,13 +33,14 @@ model FlowEmail {
   id           String  @id @default(cuid())
   brand        Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
   brandId      String
+  flowType     String  @default("review")
   position     Int
   enabled      Boolean @default(true)
   delayMinutes Int     @default(30)
   subject      String  @default("")
   body         String  @default("")
 
-  @@unique([brandId, position])
+  @@unique([brandId, flowType, position])
   @@index([brandId])
 }
 
@@ -47,17 +49,20 @@ model SentEmail {
   brand           Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   brandId         String
   orderId         String
+  flowType        String   @default("review")
   flowPosition    Int      @default(1)
   customerEmail   String
   customerName    String   @default("")
+  resendEmailId   String   @default("")
   scheduledAt     DateTime
   sentAt          DateTime?
   status          String   @default("scheduled")
   createdAt       DateTime @default(now())
 
-  @@unique([brandId, orderId, flowPosition])
+  @@unique([brandId, orderId, flowType, flowPosition])
   @@index([brandId])
   @@index([status, scheduledAt])
+  @@index([customerEmail, flowType, status])
 }
 
 model Unsubscribed {
