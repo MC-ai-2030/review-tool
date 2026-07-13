@@ -160,7 +160,7 @@ export default function AdminPage() {
                   <li>Ga naar <strong>dev.shopify.com</strong> en log in</li>
                   <li>Klik <strong>Apps → Create app → Start from Dev Dashboard</strong></li>
                   <li>Geef de app een naam (bijv. "Review Tool") → <strong>Create</strong></li>
-                  <li>Ga naar <strong>Versions</strong> → stel de API scope <strong>read_orders</strong> in</li>
+                  <li>Ga naar <strong>Versions</strong> → stel de API scopes in: <strong>read_orders</strong> en <strong>read_checkouts</strong> (voor abandoned checkout)</li>
                   <li>Klik <strong>Release</strong> om de versie te activeren</li>
                   <li>Ga naar <strong>Home</strong> → installeer de app op je store</li>
                   <li>Ga naar <strong>Settings</strong> → kopieer <strong>Client ID</strong> en <strong>Client Secret</strong></li>
@@ -169,19 +169,44 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Stap 3: Klaar!</h3>
-                <p>Na het koppelen ontvangt elke klant automatisch <strong>30 minuten na een bestelling</strong> een review-mail. De mail bevat:</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Stap 3: E-mail flows instellen</h3>
+                <p className="mb-2">Klik op <strong>"E-mail"</strong> bij het merk. Je ziet bovenaan een toggle om te wisselen tussen twee flows:</p>
+                <ul className="list-disc list-inside space-y-1 ml-1">
+                  <li><strong>Review flow</strong> — mails na een bestelling om reviews te verzamelen</li>
+                  <li><strong>Abandoned Checkout flow</strong> — mails na een verlaten winkelwagen om klanten terug te halen</li>
+                </ul>
+                <p className="mt-2">Per flow kun je tot <strong>5 e-mails</strong> instellen, elk met:</p>
                 <ul className="list-disc list-inside space-y-1 ml-1 mt-1">
-                  <li>Merknaam, logo en kleuren</li>
-                  <li>Persoonlijke begroeting met voornaam</li>
-                  <li>Link naar de review-pagina</li>
-                  <li>Uitschrijflink onderaan</li>
+                  <li>Eigen vertraging (bijv. 30 min, 1 uur, 3 dagen)</li>
+                  <li>Eigen onderwerpregel en tekst</li>
+                  <li>Aan/uit toggle per mail</li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Wat ziet de klant?</h3>
-                <p>Op de review-pagina kiest de klant uit drie opties:</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Beschikbare variabelen</h3>
+                <ul className="list-disc list-inside space-y-1 ml-1">
+                  <li><span className="font-mono bg-white px-1 rounded border border-blue-200">{"{voornaam}"}</span> — voornaam van de klant</li>
+                  <li><span className="font-mono bg-white px-1 rounded border border-blue-200">{"{merknaam}"}</span> — naam van het merk</li>
+                  <li><span className="font-mono bg-white px-1 rounded border border-blue-200">{"{ordernummer}"}</span> — ordernummer (alleen review flow)</li>
+                  <li><span className="font-mono bg-white px-1 rounded border border-blue-200">{"{link}"}</span> — link naar de review-pagina</li>
+                  <li><span className="font-mono bg-white px-1 rounded border border-blue-200">{"{checkout_url}"}</span> — link naar verlaten winkelwagen (alleen abandoned checkout)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Hoe werkt de abandoned checkout flow?</h3>
+                <ol className="list-decimal list-inside space-y-1.5 ml-1">
+                  <li>Klant vult gegevens in bij checkout maar rondt de bestelling niet af</li>
+                  <li>Shopify stuurt een signaal naar de tool</li>
+                  <li>De abandoned checkout e-mails worden ingepland</li>
+                  <li><strong>Rondt de klant alsnog af?</strong> → alle geplande abandoned checkout mails worden automatisch geannuleerd</li>
+                </ol>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Hoe werkt de review flow?</h3>
+                <p>Na een bestelling ontvangt de klant de review-mails volgens je ingestelde timing. De review-pagina biedt drie opties:</p>
                 <ul className="list-disc list-inside space-y-1 ml-1 mt-1">
                   <li><strong>Loved it</strong> → wordt doorgestuurd naar Trustpilot</li>
                   <li><strong>It was okay / Disappointed</strong> → kan feedback achterlaten (komt niet op Trustpilot)</li>
