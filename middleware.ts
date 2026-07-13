@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Public: Shopify webhooks, unsubscribe, cron
-  if (pathname === "/api/webhooks/shopify" || pathname === "/api/unsubscribe" || pathname === "/unsubscribe" || pathname === "/api/cron") {
+  if (pathname === "/api/webhooks/shopify" || pathname === "/api/unsubscribe" || pathname === "/unsubscribe" || pathname === "/api/cron" || pathname.startsWith("/api/track/")) {
     return NextResponse.next();
   }
 

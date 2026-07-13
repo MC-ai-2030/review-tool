@@ -53,11 +53,14 @@ model SentEmail {
   flowPosition    Int      @default(1)
   customerEmail   String
   customerName    String   @default("")
-  resendEmailId   String   @default("")
-  scheduledAt     DateTime
-  sentAt          DateTime?
-  status          String   @default("scheduled")
-  createdAt       DateTime @default(now())
+  resendEmailId    String   @default("")
+  scheduledAt      DateTime
+  sentAt           DateTime?
+  clicked          Boolean  @default(false)
+  clickedAt        DateTime?
+  convertedRevenue Float    @default(0)
+  status           String   @default("scheduled")
+  createdAt        DateTime @default(now())
 
   @@unique([brandId, orderId, flowType, flowPosition])
   @@index([brandId])

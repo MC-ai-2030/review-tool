@@ -334,6 +334,10 @@ export default function AdminPage() {
                         Geen e-mail
                       </span>
                     )}
+                    <a href={`/admin/stats/${brand.id}`}
+                      className="text-xs text-blue-500 hover:underline flex-shrink-0">
+                      Stats
+                    </a>
                     <a href={`/admin/email/${brand.id}`}
                       className="text-xs text-blue-500 hover:underline flex-shrink-0">
                       E-mail

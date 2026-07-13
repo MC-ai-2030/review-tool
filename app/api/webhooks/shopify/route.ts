@@ -37,6 +37,20 @@ async function scheduleFlowEmails(
 
     if (delayMs <= RESEND_MAX_SCHEDULE_MS) {
       try {
+        // Create DB entry first to get tracking ID
+        const sentEmail = await prisma.sentEmail.create({
+          data: {
+            brandId: brand.id,
+            orderId: triggerId,
+            flowType,
+            flowPosition: flowEmail.position,
+            customerEmail: email,
+            customerName,
+            scheduledAt,
+            status: "scheduled",
+          },
+        });
+
         const result = await sendReviewEmail({
           to: email,
           customerName,
@@ -51,23 +65,14 @@ async function scheduleFlowEmails(
           senderName: brand.senderName || undefined,
           orderNumber,
           checkoutUrl: flowType === "abandoned_checkout" ? checkoutUrl : undefined,
+          trackingId: sentEmail.id,
           scheduledAt,
         });
 
         const resendEmailId = (result as { data?: { id?: string } })?.data?.id || "";
-
-        await prisma.sentEmail.create({
-          data: {
-            brandId: brand.id,
-            orderId: triggerId,
-            flowType,
-            flowPosition: flowEmail.position,
-            customerEmail: email,
-            customerName,
-            resendEmailId,
-            scheduledAt,
-            status: "scheduled",
-          },
+        await prisma.sentEmail.update({
+          where: { id: sentEmail.id },
+          data: { resendEmailId },
         });
 
         scheduled.push({ position: flowEmail.position, scheduledAt: scheduledAt.toISOString() });
@@ -145,24 +150,47 @@ export async function POST(request: NextRequest) {
 
   // Handle orders/create → cancel abandoned checkout emails + start review flow
   if (topic === "orders/create") {
-    // Cancel any pending abandoned checkout emails for this customer
-    const pendingCheckoutEmails = await prisma.sentEmail.findMany({
+    // Cancel pending abandoned checkout emails + track revenue for sent ones
+    const orderRevenue = parseFloat(payload.total_price || "0");
+
+    const checkoutEmails = await prisma.sentEmail.findMany({
       where: {
         brandId: brand.id,
         customerEmail: email,
         flowType: "abandoned_checkout",
-        status: { in: ["scheduled", "pending"] },
       },
     });
 
-    for (const pending of pendingCheckoutEmails) {
-      if (pending.resendEmailId) {
-        await cancelScheduledEmail(pending.resendEmailId);
+    const hadSentCheckoutEmail = checkoutEmails.some((e) => e.clicked || e.status === "scheduled");
+
+    for (const entry of checkoutEmails) {
+      if (entry.status === "scheduled" || entry.status === "pending") {
+        if (entry.resendEmailId) {
+          await cancelScheduledEmail(entry.resendEmailId);
+        }
+        await prisma.sentEmail.update({
+          where: { id: entry.id },
+          data: { status: "cancelled" },
+        });
       }
-      await prisma.sentEmail.update({
-        where: { id: pending.id },
-        data: { status: "cancelled" },
-      });
+      // Attribute revenue to clicked abandoned checkout emails
+      if (entry.clicked && orderRevenue > 0) {
+        await prisma.sentEmail.update({
+          where: { id: entry.id },
+          data: { convertedRevenue: orderRevenue },
+        });
+      }
+    }
+
+    // If no clicked email but checkout emails were sent, attribute to first sent one
+    if (!checkoutEmails.some((e) => e.clicked) && hadSentCheckoutEmail && orderRevenue > 0) {
+      const firstSent = checkoutEmails.find((e) => e.status !== "pending");
+      if (firstSent) {
+        await prisma.sentEmail.update({
+          where: { id: firstSent.id },
+          data: { convertedRevenue: orderRevenue },
+        });
+      }
     }
 
     // Schedule review flow
@@ -173,7 +201,7 @@ export async function POST(request: NextRequest) {
       brand, "review", orderId, email, customerName, orderNumber, ""
     );
 
-    return Response.json({ success: true, flow: "review", email, cancelled_checkout_emails: pendingCheckoutEmails.length, scheduled });
+    return Response.json({ success: true, flow: "review", email, cancelled_checkout_emails: checkoutEmails.filter((e) => e.status === "cancelled").length, scheduled });
   }
 
   return Response.json({ skipped: true, reason: `unhandled topic: ${topic}` });

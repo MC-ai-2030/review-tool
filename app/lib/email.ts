@@ -18,6 +18,7 @@ interface SendReviewEmailParams {
   senderName?: string;
   orderNumber?: string;
   checkoutUrl?: string;
+  trackingId?: string;
   scheduledAt?: Date;
 }
 
@@ -152,11 +153,20 @@ function replaceVars(text: string, vars: { firstName: string; brandName: string;
 }
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, scheduledAt } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, trackingId, scheduledAt } = params;
   const firstName = customerName.split(" ")[0] || "";
-  const reviewUrl = `https://reviews-verified.com/${brandSlug}`;
+  const rawReviewUrl = `https://reviews-verified.com/${brandSlug}`;
+  const rawCheckoutUrl = checkoutUrl || "";
 
-  const vars = { firstName, brandName, orderNumber: orderNumber || "", reviewUrl, checkoutUrl: checkoutUrl || "" };
+  // Wrap URLs in tracker if trackingId is available
+  const reviewUrl = trackingId
+    ? `https://reviews-verified.com/api/track/${trackingId}?url=${encodeURIComponent(rawReviewUrl)}`
+    : rawReviewUrl;
+  const trackedCheckoutUrl = trackingId && rawCheckoutUrl
+    ? `https://reviews-verified.com/api/track/${trackingId}?url=${encodeURIComponent(rawCheckoutUrl)}`
+    : rawCheckoutUrl;
+
+  const vars = { firstName, brandName, orderNumber: orderNumber || "", reviewUrl, checkoutUrl: trackedCheckoutUrl };
   const rawSubject = emailSubject || DEFAULT_SUBJECTS[language] || DEFAULT_SUBJECTS.en;
   const rawBody = emailBody || DEFAULT_BODIES[language] || DEFAULT_BODIES.en;
   const subject = replaceVars(rawSubject, vars, false);
@@ -186,7 +196,7 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
       <div style="padding:32px 28px 36px;">
         ${bodyHtml}
         <div style="text-align:center;margin-top:28px;">
-          <a href="${checkoutUrl || reviewUrl}" style="display:inline-block;padding:14px 36px;background:#000000;color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
+          <a href="${trackedCheckoutUrl || reviewUrl}" style="display:inline-block;padding:14px 36px;background:#000000;color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
             ${ctaLabel}
           </a>
         </div>
