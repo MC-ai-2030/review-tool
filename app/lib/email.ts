@@ -4,6 +4,14 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
+interface LineItem {
+  title: string;
+  price: string;
+  quantity: number;
+  imageUrl?: string;
+  variantTitle?: string;
+}
+
 interface SendReviewEmailParams {
   to: string;
   customerName: string;
@@ -18,6 +26,8 @@ interface SendReviewEmailParams {
   senderName?: string;
   orderNumber?: string;
   checkoutUrl?: string;
+  lineItems?: LineItem[];
+  currency?: string;
   trackingId?: string;
   scheduledAt?: Date;
 }
@@ -124,6 +134,16 @@ const CTA_LABELS: Record<string, string> = {
   pl: "Zostaw opinię",
 };
 
+const CHECKOUT_CTA_LABELS: Record<string, string> = {
+  en: "Complete your order",
+  nl: "Rond je bestelling af",
+  de: "Bestellung abschließen",
+  sv: "Slutför din beställning",
+  da: "Fuldfør din bestilling",
+  no: "Fullfør bestillingen din",
+  pl: "Dokończ zamówienie",
+};
+
 const UNSUBSCRIBE_LABELS: Record<string, string> = {
   en: "Unsubscribe",
   nl: "Uitschrijven",
@@ -152,8 +172,30 @@ function replaceVars(text: string, vars: { firstName: string; brandName: string;
   return result;
 }
 
+function renderLineItemsHtml(items: LineItem[], currency: string): string {
+  if (!items || items.length === 0) return "";
+  return `
+    <div style="margin:24px 0 8px;border-top:1px solid #eee;padding-top:20px;">
+      ${items.map(item => `
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #f0f0f0;">
+          ${item.imageUrl
+            ? `<img src="${item.imageUrl}" alt="${item.title}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #eee;">`
+            : `<div style="width:72px;height:72px;background:#f0edea;border-radius:8px;"></div>`
+          }
+          <div style="flex:1;min-width:0;">
+            <p style="margin:0;font-size:0.95rem;font-weight:600;color:#1a1a1a;line-height:1.3;">${item.title}</p>
+            ${item.variantTitle && item.variantTitle !== "Default Title" ? `<p style="margin:2px 0 0;font-size:0.8rem;color:#999;">${item.variantTitle}</p>` : ""}
+            <p style="margin:6px 0 0;font-size:0.9rem;color:#444;">${currency}${item.price}${item.quantity > 1 ? ` × ${item.quantity}` : ""}</p>
+          </div>
+        </div>
+      `).join("")}
+    </div>`;
+}
+
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, trackingId, scheduledAt } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt } = params;
+  const currencySymbols: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", SEK: "kr ", DKK: "kr ", NOK: "kr ", PLN: "zł ", CHF: "CHF " };
+  const currencySymbol = currencySymbols[currency || ""] || (currency ? currency + " " : "€");
   const firstName = customerName.split(" ")[0] || "";
   const rawReviewUrl = `https://reviews-verified.com/${brandSlug}`;
   const rawCheckoutUrl = checkoutUrl || "";
@@ -172,7 +214,10 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
   const subject = replaceVars(rawSubject, vars, false);
   const bodyText = replaceVars(rawBody, vars, true);
 
-  const ctaLabel = CTA_LABELS[language] || CTA_LABELS.en;
+  const isCheckout = lineItems && lineItems.length > 0;
+  const ctaLabel = isCheckout
+    ? (CHECKOUT_CTA_LABELS[language] || CHECKOUT_CTA_LABELS.en)
+    : (CTA_LABELS[language] || CTA_LABELS.en);
 
   const bodyHtml = bodyText.split("\n").map((line) =>
     `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`
@@ -195,6 +240,7 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
       <!-- Body -->
       <div style="padding:32px 28px 36px;">
         ${bodyHtml}
+        ${lineItems && lineItems.length > 0 ? renderLineItemsHtml(lineItems, currencySymbol) : ""}
         <div style="text-align:center;margin-top:28px;">
           <a href="${trackedCheckoutUrl || reviewUrl}" style="display:inline-block;padding:14px 36px;background:#000000;color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
             ${ctaLabel}

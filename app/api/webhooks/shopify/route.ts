@@ -12,6 +12,8 @@ async function scheduleFlowEmails(
   customerName: string,
   orderNumber: string,
   checkoutUrl: string,
+  lineItems?: { title: string; price: string; quantity: number; variantTitle?: string; imageUrl?: string }[],
+  currency?: string,
 ) {
   const flowEmails = brand.flowEmails.filter((fe) => fe.flowType === flowType && fe.enabled);
   if (flowEmails.length === 0) return [];
@@ -65,6 +67,8 @@ async function scheduleFlowEmails(
           senderName: brand.senderName || undefined,
           orderNumber,
           checkoutUrl: flowType === "abandoned_checkout" ? checkoutUrl : undefined,
+          lineItems: flowType === "abandoned_checkout" ? lineItems : undefined,
+          currency: flowType === "abandoned_checkout" ? currency : undefined,
           trackingId: sentEmail.id,
           scheduledAt,
         });
@@ -141,11 +145,21 @@ export async function POST(request: NextRequest) {
     const checkoutId = String(payload.id);
     const checkoutUrl = payload.abandoned_checkout_url || payload.recovery_url || "";
 
+    // Extract line items from checkout payload
+    const lineItems = (payload.line_items || []).map((item: { title?: string; price?: string; quantity?: number; variant_title?: string; image_url?: string; product_id?: number; sku?: string }) => ({
+      title: item.title || "",
+      price: item.price || "0",
+      quantity: item.quantity || 1,
+      variantTitle: item.variant_title || "",
+      imageUrl: item.image_url || "",
+    }));
+    const checkoutCurrency = payload.currency || "";
+
     const scheduled = await scheduleFlowEmails(
-      brand, "abandoned_checkout", checkoutId, email, customerName, "", checkoutUrl
+      brand, "abandoned_checkout", checkoutId, email, customerName, "", checkoutUrl, lineItems, checkoutCurrency
     );
 
-    return Response.json({ success: true, flow: "abandoned_checkout", email, scheduled });
+    return Response.json({ success: true, flow: "abandoned_checkout", email, lineItems: lineItems.length, scheduled });
   }
 
   // Handle orders/create → cancel abandoned checkout emails + start review flow
