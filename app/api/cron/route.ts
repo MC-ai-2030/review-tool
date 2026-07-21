@@ -44,6 +44,11 @@ export async function GET() {
     }
 
     try {
+      const isCheckout = entry.flowType === "abandoned_checkout";
+      const lineItems = isCheckout && entry.checkoutLineItems
+        ? JSON.parse(entry.checkoutLineItems)
+        : undefined;
+
       await sendReviewEmail({
         to: entry.customerEmail,
         customerName: entry.customerName,
@@ -57,6 +62,11 @@ export async function GET() {
         senderEmail: entry.brand.senderEmail || undefined,
         senderName: entry.brand.senderName || undefined,
         scheduledAt: entry.scheduledAt,
+        trackingId: entry.id,
+        flowType: entry.flowType,
+        checkoutUrl: isCheckout ? entry.checkoutUrl || undefined : undefined,
+        lineItems,
+        currency: isCheckout ? entry.checkoutCurrency || undefined : undefined,
       });
 
       await prisma.sentEmail.update({

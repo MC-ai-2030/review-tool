@@ -30,6 +30,7 @@ interface SendReviewEmailParams {
   currency?: string;
   trackingId?: string;
   scheduledAt?: Date;
+  flowType?: string;
 }
 
 export async function cancelScheduledEmail(resendEmailId: string) {
@@ -124,6 +125,75 @@ Z poważaniem,
 {merknaam}`,
 };
 
+const DEFAULT_CHECKOUT_SUBJECTS: Record<string, string> = {
+  en: "You left something behind, {voornaam}!",
+  nl: "Je bent iets vergeten, {voornaam}!",
+  de: "Sie haben etwas vergessen, {voornaam}!",
+  sv: "Du glömde något, {voornaam}!",
+  da: "Du glemte noget, {voornaam}!",
+  no: "Du glemte noe, {voornaam}!",
+  pl: "Zapomniałeś o czymś, {voornaam}!",
+};
+
+const DEFAULT_CHECKOUT_BODIES: Record<string, string> = {
+  en: `Hi {voornaam},
+
+It looks like you left some items in your cart at {merknaam}.
+
+Don't worry — your cart is still saved. Click the button below to complete your order.
+
+Kind regards,
+{merknaam}`,
+  nl: `Hoi {voornaam},
+
+Het lijkt erop dat je nog wat producten in je winkelwagen hebt achtergelaten bij {merknaam}.
+
+Geen zorgen — je winkelwagen is bewaard. Klik op de knop hieronder om je bestelling af te ronden.
+
+Met vriendelijke groet,
+{merknaam}`,
+  de: `Hallo {voornaam},
+
+Es sieht so aus, als hätten Sie einige Artikel in Ihrem Warenkorb bei {merknaam} vergessen.
+
+Keine Sorge — Ihr Warenkorb ist gespeichert. Klicken Sie auf den Button unten, um Ihre Bestellung abzuschließen.
+
+Mit freundlichen Grüßen,
+{merknaam}`,
+  sv: `Hej {voornaam},
+
+Det verkar som att du lämnade några varor i din kundvagn hos {merknaam}.
+
+Oroa dig inte — din kundvagn är sparad. Klicka på knappen nedan för att slutföra din beställning.
+
+Med vänliga hälsningar,
+{merknaam}`,
+  da: `Hej {voornaam},
+
+Det ser ud til, at du har efterladt nogle varer i din indkøbskurv hos {merknaam}.
+
+Bare rolig — din indkøbskurv er gemt. Klik på knappen nedenfor for at afslutte din ordre.
+
+Med venlig hilsen,
+{merknaam}`,
+  no: `Hei {voornaam},
+
+Det ser ut som du har lagt igjen noen varer i handlekurven din hos {merknaam}.
+
+Ikke bekymre deg — handlekurven din er lagret. Klikk på knappen nedenfor for å fullføre bestillingen.
+
+Med vennlig hilsen,
+{merknaam}`,
+  pl: `Cześć {voornaam},
+
+Wygląda na to, że zostawiłeś kilka produktów w koszyku w {merknaam}.
+
+Nie martw się — Twój koszyk jest zapisany. Kliknij przycisk poniżej, aby dokończyć zamówienie.
+
+Z poważaniem,
+{merknaam}`,
+};
+
 const CTA_LABELS: Record<string, string> = {
   en: "Leave your review",
   nl: "Laat je review achter",
@@ -193,7 +263,7 @@ function renderLineItemsHtml(items: LineItem[], currency: string): string {
 }
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt, flowType } = params;
   const currencySymbols: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", SEK: "kr ", DKK: "kr ", NOK: "kr ", PLN: "zł ", CHF: "CHF " };
   const currencySymbol = currencySymbols[currency || ""] || (currency ? currency + " " : "€");
   const firstName = customerName.split(" ")[0] || "";
@@ -209,12 +279,15 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
     : rawCheckoutUrl;
 
   const vars = { firstName, brandName, orderNumber: orderNumber || "", reviewUrl, checkoutUrl: trackedCheckoutUrl };
-  const rawSubject = emailSubject || DEFAULT_SUBJECTS[language] || DEFAULT_SUBJECTS.en;
-  const rawBody = emailBody || DEFAULT_BODIES[language] || DEFAULT_BODIES.en;
+  const isCheckoutFlow = flowType === "abandoned_checkout";
+  const defaultSubjects = isCheckoutFlow ? DEFAULT_CHECKOUT_SUBJECTS : DEFAULT_SUBJECTS;
+  const defaultBodies = isCheckoutFlow ? DEFAULT_CHECKOUT_BODIES : DEFAULT_BODIES;
+  const rawSubject = emailSubject || defaultSubjects[language] || defaultSubjects.en;
+  const rawBody = emailBody || defaultBodies[language] || defaultBodies.en;
   const subject = replaceVars(rawSubject, vars, false);
   const bodyText = replaceVars(rawBody, vars, true);
 
-  const isCheckout = lineItems && lineItems.length > 0;
+  const isCheckout = isCheckoutFlow || (lineItems && lineItems.length > 0);
   const ctaLabel = isCheckout
     ? (CHECKOUT_CTA_LABELS[language] || CHECKOUT_CTA_LABELS.en)
     : (CTA_LABELS[language] || CTA_LABELS.en);

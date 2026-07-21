@@ -50,6 +50,9 @@ async function scheduleFlowEmails(
             customerName,
             scheduledAt,
             status: "scheduled",
+            checkoutUrl: flowType === "abandoned_checkout" ? checkoutUrl : "",
+            checkoutLineItems: flowType === "abandoned_checkout" && lineItems ? JSON.stringify(lineItems) : "",
+            checkoutCurrency: flowType === "abandoned_checkout" ? (currency || "") : "",
           },
         });
 
@@ -71,6 +74,7 @@ async function scheduleFlowEmails(
           currency: flowType === "abandoned_checkout" ? currency : undefined,
           trackingId: sentEmail.id,
           scheduledAt,
+          flowType,
         });
 
         const resendEmailId = (result as { data?: { id?: string } })?.data?.id || "";
@@ -94,6 +98,9 @@ async function scheduleFlowEmails(
           customerName,
           scheduledAt,
           status: "pending",
+          checkoutUrl: flowType === "abandoned_checkout" ? checkoutUrl : "",
+          checkoutLineItems: flowType === "abandoned_checkout" && lineItems ? JSON.stringify(lineItems) : "",
+          checkoutCurrency: flowType === "abandoned_checkout" ? (currency || "") : "",
         },
       });
       scheduled.push({ position: flowEmail.position, scheduledAt: scheduledAt.toISOString() });

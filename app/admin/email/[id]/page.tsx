@@ -102,6 +102,12 @@ const CTA_LABELS: Record<string, string> = {
   pl: "Zostaw opinię",
 };
 
+const CHECKOUT_CTA_LABELS: Record<string, string> = {
+  en: "Complete your order", nl: "Rond je bestelling af", de: "Bestellung abschließen",
+  sv: "Slutför din beställning", da: "Fuldfør din bestilling", no: "Fullfør bestillingen din",
+  pl: "Dokończ zamówienie",
+};
+
 const UNSUB_LABELS: Record<string, string> = {
   en: "Unsubscribe", nl: "Uitschrijven", de: "Abmelden",
   sv: "Avprenumerera", da: "Afmeld", no: "Avmeld",
@@ -273,7 +279,7 @@ export default function FlowEditorPage() {
       const res = await fetch(`/api/brands/${id}/test-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: testEmail, subject: active.subject, body: active.body }),
+        body: JSON.stringify({ to: testEmail, subject: active.subject, body: active.body, flowType }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -464,9 +470,32 @@ export default function FlowEditorPage() {
                         </p>
                       ))}
 
+                      {flowType === "abandoned_checkout" && (
+                        <div className="mt-5 pt-4 border-t border-gray-100 space-y-3">
+                          <div className="flex gap-3 items-center">
+                            <div className="w-14 h-14 bg-gray-100 rounded-lg flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">Classic Sneakers</p>
+                              <p className="text-xs text-gray-400">42 / White</p>
+                              <p className="text-sm text-gray-600 mt-0.5">&euro;89,95</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-3 items-center">
+                            <div className="w-14 h-14 bg-gray-100 rounded-lg flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">Cotton T-Shirt</p>
+                              <p className="text-xs text-gray-400">M / Black</p>
+                              <p className="text-sm text-gray-600 mt-0.5">&euro;34,95 &times; 2</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="text-center mt-6">
                         <span className="inline-block px-8 py-3 text-white text-sm font-semibold rounded-lg bg-black">
-                          {CTA_LABELS[lang] || CTA_LABELS.en}
+                          {flowType === "abandoned_checkout"
+                            ? (CHECKOUT_CTA_LABELS[lang] || CHECKOUT_CTA_LABELS.en)
+                            : (CTA_LABELS[lang] || CTA_LABELS.en)}
                         </span>
                       </div>
                     </div>
