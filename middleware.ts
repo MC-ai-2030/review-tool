@@ -17,11 +17,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public: brand API for review pages (GET only)
-  if (pathname === "/api/brands" && request.method === "GET") {
-    return NextResponse.next();
-  }
-
   // Public: Shopify webhooks, unsubscribe, cron
   if (pathname === "/api/webhooks/shopify" || pathname === "/api/unsubscribe" || pathname === "/unsubscribe" || pathname.startsWith("/api/cron") || pathname.startsWith("/api/track/")) {
     return NextResponse.next();
