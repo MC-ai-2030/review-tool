@@ -31,6 +31,8 @@ interface SendReviewEmailParams {
   trackingId?: string;
   scheduledAt?: Date;
   flowType?: string;
+  emailBlocks?: string;
+  customVars?: Record<string, string>;
 }
 
 export async function cancelScheduledEmail(resendEmailId: string) {
@@ -120,6 +122,61 @@ Dziękujemy, że jesteś klientem {merknaam}!
 Z przyjemnością oferujemy Ci 50% zwrotu za zamówienie. Twoja szczera opinia pomaga nam się rozwijać.
 
 Kliknij przycisk poniżej, aby zostawić swoją opinię.
+
+Z poważaniem,
+{merknaam}`,
+};
+
+const DEFAULT_BASIC_SUBJECTS: Record<string, string> = {
+  en: "A message from {merknaam}",
+  nl: "Een bericht van {merknaam}",
+  de: "Eine Nachricht von {merknaam}",
+  sv: "Ett meddelande från {merknaam}",
+  da: "En besked fra {merknaam}",
+  no: "En melding fra {merknaam}",
+  pl: "Wiadomość od {merknaam}",
+};
+
+const DEFAULT_BASIC_BODIES: Record<string, string> = {
+  en: `Hi {voornaam},
+
+Thank you for your interest in {merknaam}!
+
+Kind regards,
+{merknaam}`,
+  nl: `Hoi {voornaam},
+
+Bedankt voor je interesse in {merknaam}!
+
+Met vriendelijke groet,
+{merknaam}`,
+  de: `Hallo {voornaam},
+
+Vielen Dank für Ihr Interesse an {merknaam}!
+
+Mit freundlichen Grüßen,
+{merknaam}`,
+  sv: `Hej {voornaam},
+
+Tack för ditt intresse för {merknaam}!
+
+Med vänliga hälsningar,
+{merknaam}`,
+  da: `Hej {voornaam},
+
+Tak for din interesse i {merknaam}!
+
+Med venlig hilsen,
+{merknaam}`,
+  no: `Hei {voornaam},
+
+Takk for din interesse i {merknaam}!
+
+Med vennlig hilsen,
+{merknaam}`,
+  pl: `Cześć {voornaam},
+
+Dziękujemy za zainteresowanie {merknaam}!
 
 Z poważaniem,
 {merknaam}`,
@@ -223,7 +280,7 @@ const UNSUBSCRIBE_LABELS: Record<string, string> = {
   no: "Avmeld",
 };
 
-function replaceVars(text: string, vars: { firstName: string; brandName: string; orderNumber: string; reviewUrl: string; checkoutUrl: string }, isHtml: boolean): string {
+function replaceVars(text: string, vars: { firstName: string; brandName: string; orderNumber: string; reviewUrl: string; checkoutUrl: string }, isHtml: boolean, customVars?: Record<string, string>): string {
   let result = text
     .replace(/\{voornaam\}/g, vars.firstName || "")
     .replace(/\{merknaam\}/g, vars.brandName)
@@ -237,6 +294,13 @@ function replaceVars(text: string, vars: { firstName: string; brandName: string;
     result = result
       .replace(/\{link\}/g, vars.reviewUrl)
       .replace(/\{checkout_url\}/g, vars.checkoutUrl);
+  }
+
+  // Replace custom variables from trigger API
+  if (customVars) {
+    for (const [key, value] of Object.entries(customVars)) {
+      result = result.replace(new RegExp(`\\{${key}\\}`, "g"), value);
+    }
   }
 
   return result;
@@ -262,8 +326,69 @@ function renderLineItemsHtml(items: LineItem[], currency: string): string {
     </div>`;
 }
 
+type EmailBlock =
+  | { type: "text"; content: string }
+  | { type: "image"; url: string; alt: string }
+  | { type: "button"; text: string; url: string; color: string }
+  | { type: "divider" }
+  | { type: "products" };
+
+function renderBlocksHtml(
+  blocks: EmailBlock[],
+  vars: { firstName: string; brandName: string; orderNumber: string; reviewUrl: string; checkoutUrl: string },
+  lineItems: LineItem[] | undefined,
+  currencySymbol: string,
+  customVars?: Record<string, string>,
+): string {
+  return blocks.map((block) => {
+    switch (block.type) {
+      case "text": {
+        const processed = replaceVars(block.content, vars, true, customVars);
+        return processed.split("\n").map((line) => {
+          if (line.includes("{producten}")) {
+            const parts = line.split("{producten}");
+            const productHtml = renderLineItemsHtml(lineItems || [], currencySymbol);
+            return parts.join(productHtml);
+          }
+          return `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`;
+        }).join("\n");
+      }
+      case "image":
+        return `<div style="text-align:center;margin:16px 0;"><img src="${block.url}" alt="${block.alt}" style="max-width:100%;height:auto;border-radius:8px;display:inline-block;"></div>`;
+      case "button": {
+        const buttonUrl = replaceVars(block.url, vars, false, customVars);
+        return `<div style="text-align:center;margin-top:28px;">
+          <!--[if mso]>
+          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${buttonUrl}" style="height:48px;width:220px;" arcsize="21%" fillcolor="${block.color}">
+            <w:anchorlock/>
+            <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;">${block.text}</center>
+          </v:roundrect>
+          <![endif]-->
+          <!--[if !mso]><!-->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+            <tr>
+              <td align="center" bgcolor="${block.color}" style="border-radius:10px;background-color:${block.color};">
+                <a href="${buttonUrl}" target="_blank" style="display:block;padding:14px 36px;color:#ffffff;text-decoration:none;font-size:1rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                  ${block.text}
+                </a>
+              </td>
+            </tr>
+          </table>
+          <!--<![endif]-->
+        </div>`;
+      }
+      case "divider":
+        return `<hr style="border:none;border-top:1px solid #eee;margin:24px 0;">`;
+      case "products":
+        return renderLineItemsHtml(lineItems || [], currencySymbol);
+      default:
+        return "";
+    }
+  }).join("\n");
+}
+
 export async function sendReviewEmail(params: SendReviewEmailParams) {
-  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt, flowType } = params;
+  const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt, flowType, emailBlocks, customVars } = params;
   const currencySymbols: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", SEK: "kr ", DKK: "kr ", NOK: "kr ", PLN: "zł ", CHF: "CHF " };
   const currencySymbol = currencySymbols[currency || ""] || (currency ? currency + " " : "€");
   const firstName = customerName.split(" ")[0] || "";
@@ -280,21 +405,61 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
 
   const vars = { firstName, brandName, orderNumber: orderNumber || "", reviewUrl, checkoutUrl: trackedCheckoutUrl };
   const isCheckoutFlow = flowType === "abandoned_checkout";
-  const defaultSubjects = isCheckoutFlow ? DEFAULT_CHECKOUT_SUBJECTS : DEFAULT_SUBJECTS;
-  const defaultBodies = isCheckoutFlow ? DEFAULT_CHECKOUT_BODIES : DEFAULT_BODIES;
+  const defaultSubjectsMap: Record<string, Record<string, string>> = {
+    abandoned_checkout: DEFAULT_CHECKOUT_SUBJECTS,
+    basic: DEFAULT_BASIC_SUBJECTS,
+  };
+  const defaultBodiesMap: Record<string, Record<string, string>> = {
+    abandoned_checkout: DEFAULT_CHECKOUT_BODIES,
+    basic: DEFAULT_BASIC_BODIES,
+  };
+  const defaultSubjects = defaultSubjectsMap[flowType || ""] || DEFAULT_SUBJECTS;
+  const defaultBodies = defaultBodiesMap[flowType || ""] || DEFAULT_BODIES;
   const rawSubject = emailSubject || defaultSubjects[language] || defaultSubjects.en;
   const rawBody = emailBody || defaultBodies[language] || defaultBodies.en;
-  const subject = replaceVars(rawSubject, vars, false);
-  const bodyText = replaceVars(rawBody, vars, true);
+  const subject = replaceVars(rawSubject, vars, false, customVars);
+  const bodyText = replaceVars(rawBody, vars, true, customVars);
 
-  const isCheckout = isCheckoutFlow || (lineItems && lineItems.length > 0);
-  const ctaLabel = isCheckout
-    ? (CHECKOUT_CTA_LABELS[language] || CHECKOUT_CTA_LABELS.en)
-    : (CTA_LABELS[language] || CTA_LABELS.en);
+  // Determine inner body content: block-based or legacy
+  let innerBodyHtml: string;
 
-  const bodyHtml = bodyText.split("\n").map((line) =>
-    `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`
-  ).join("\n");
+  if (emailBlocks) {
+    // Block-based email content
+    const parsedBlocks: EmailBlock[] = JSON.parse(emailBlocks);
+    innerBodyHtml = renderBlocksHtml(parsedBlocks, vars, lineItems, currencySymbol, customVars);
+  } else {
+    // Legacy: body text + line items + CTA button
+    const isCheckout = isCheckoutFlow || (lineItems && lineItems.length > 0);
+    const ctaLabel = isCheckout
+      ? (CHECKOUT_CTA_LABELS[language] || CHECKOUT_CTA_LABELS.en)
+      : (CTA_LABELS[language] || CTA_LABELS.en);
+
+    const bodyHtml = bodyText.split("\n").map((line) =>
+      `<p style="font-size:1rem;color:#444;margin:0 0 4px;line-height:1.6;">${line || "&nbsp;"}</p>`
+    ).join("\n");
+
+    innerBodyHtml = `${bodyHtml}
+        ${lineItems && lineItems.length > 0 ? renderLineItemsHtml(lineItems, currencySymbol) : ""}
+        <div style="text-align:center;margin-top:28px;">
+          <!--[if mso]>
+          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${trackedCheckoutUrl || reviewUrl}" style="height:48px;width:220px;" arcsize="21%" fillcolor="#000000">
+            <w:anchorlock/>
+            <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;">${ctaLabel}</center>
+          </v:roundrect>
+          <![endif]-->
+          <!--[if !mso]><!-->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+            <tr>
+              <td align="center" bgcolor="#000000" style="border-radius:10px;background-color:#000000;">
+                <a href="${trackedCheckoutUrl || reviewUrl}" target="_blank" style="display:block;padding:14px 36px;color:#ffffff;text-decoration:none;font-size:1rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                  ${ctaLabel}
+                </a>
+              </td>
+            </tr>
+          </table>
+          <!--<![endif]-->
+        </div>`;
+  }
 
   const html = `
 <!DOCTYPE html>
@@ -312,13 +477,7 @@ export async function sendReviewEmail(params: SendReviewEmailParams) {
       </div>
       <!-- Body -->
       <div style="padding:32px 28px 36px;">
-        ${bodyHtml}
-        ${lineItems && lineItems.length > 0 ? renderLineItemsHtml(lineItems, currencySymbol) : ""}
-        <div style="text-align:center;margin-top:28px;">
-          <a href="${trackedCheckoutUrl || reviewUrl}" style="display:inline-block;padding:14px 36px;background:#000000;color:#fff;text-decoration:none;border-radius:10px;font-size:1rem;font-weight:600;">
-            ${ctaLabel}
-          </a>
-        </div>
+        ${innerBodyHtml}
       </div>
     </div>
   </div>

@@ -54,34 +54,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return Response.json({ error: "Kon geen verbinding maken met de Shopify store." }, { status: 400 });
   }
 
-  // Register webhook for orders/create
-  const webhookRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
-    method: "POST",
-    headers: {
-      "X-Shopify-Access-Token": accessToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      webhook: {
-        topic: "orders/create",
-        address: WEBHOOK_URL,
-        format: "json",
-      },
-    }),
+  // Fetch existing webhooks to check for duplicates
+  const existingRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
+    headers: { "X-Shopify-Access-Token": accessToken },
   });
+  const existingWebhooks: { webhooks: { id: number; topic: string; address: string }[] } = existingRes.ok
+    ? await existingRes.json()
+    : { webhooks: [] };
 
-  if (!webhookRes.ok) {
-    const err = await webhookRes.text();
-    return Response.json({ error: `Webhook registratie mislukt: ${err}` }, { status: 400 });
-  }
+  // Register or reuse webhook for orders/create
+  let webhookId = "";
+  const existingOrder = existingWebhooks.webhooks.find(
+    (w) => w.topic === "orders/create" && w.address === WEBHOOK_URL
+  );
 
-  const webhookData = await webhookRes.json();
-  const webhookId = String(webhookData.webhook.id);
-
-  // Register webhook for checkouts/create (abandoned checkout)
-  let checkoutWebhookId = "";
-  try {
-    const checkoutRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
+  if (existingOrder) {
+    webhookId = String(existingOrder.id);
+  } else {
+    const webhookRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
       method: "POST",
       headers: {
         "X-Shopify-Access-Token": accessToken,
@@ -89,18 +79,53 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
       body: JSON.stringify({
         webhook: {
-          topic: "checkouts/create",
+          topic: "orders/create",
           address: WEBHOOK_URL,
           format: "json",
         },
       }),
     });
-    if (checkoutRes.ok) {
-      const checkoutData = await checkoutRes.json();
-      checkoutWebhookId = String(checkoutData.webhook.id);
+
+    if (!webhookRes.ok) {
+      const err = await webhookRes.text();
+      return Response.json({ error: `Webhook registratie mislukt: ${err}` }, { status: 400 });
     }
-  } catch {
-    // Checkout webhook optional — may require read_checkouts scope
+
+    const webhookData = await webhookRes.json();
+    webhookId = String(webhookData.webhook.id);
+  }
+
+  // Register or reuse webhook for checkouts/create (abandoned checkout)
+  let checkoutWebhookId = "";
+  const existingCheckout = existingWebhooks.webhooks.find(
+    (w) => w.topic === "checkouts/create" && w.address === WEBHOOK_URL
+  );
+
+  if (existingCheckout) {
+    checkoutWebhookId = String(existingCheckout.id);
+  } else {
+    try {
+      const checkoutRes = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
+        method: "POST",
+        headers: {
+          "X-Shopify-Access-Token": accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          webhook: {
+            topic: "checkouts/create",
+            address: WEBHOOK_URL,
+            format: "json",
+          },
+        }),
+      });
+      if (checkoutRes.ok) {
+        const checkoutData = await checkoutRes.json();
+        checkoutWebhookId = String(checkoutData.webhook.id);
+      }
+    } catch {
+      // Checkout webhook optional — may require read_checkouts scope
+    }
   }
 
   // Save to database

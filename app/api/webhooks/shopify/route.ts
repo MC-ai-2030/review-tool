@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 const RESEND_MAX_SCHEDULE_MS = 72 * 60 * 60 * 1000;
 
 async function scheduleFlowEmails(
-  brand: { id: string; name: string; slug: string; logoUrl: string; primaryColor: string; language: string; senderEmail: string; senderName: string; flowEmails: { flowType: string; position: number; enabled: boolean; delayMinutes: number; subject: string; body: string }[] },
+  brand: { id: string; name: string; slug: string; logoUrl: string; primaryColor: string; language: string; senderEmail: string; senderName: string; flowEmails: { flowType: string; position: number; enabled: boolean; delayMinutes: number; subject: string; body: string; blocks: string }[] },
   flowType: string,
   triggerId: string,
   email: string,
@@ -75,6 +75,7 @@ async function scheduleFlowEmails(
           trackingId: sentEmail.id,
           scheduledAt,
           flowType,
+          emailBlocks: flowEmail.blocks || undefined,
         });
 
         const resendEmailId = (result as { data?: { id?: string } })?.data?.id || "";

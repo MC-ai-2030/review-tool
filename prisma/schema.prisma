@@ -39,6 +39,7 @@ model FlowEmail {
   delayMinutes Int     @default(30)
   subject      String  @default("")
   body         String  @default("")
+  blocks       String  @default("")
 
   @@unique([brandId, flowType, position])
   @@index([brandId])

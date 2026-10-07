@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { emails, flowType = "review" } = await request.json() as {
-    emails: { position: number; enabled: boolean; delayMinutes: number; subject: string; body: string }[];
+    emails: { position: number; enabled: boolean; delayMinutes: number; subject: string; body: string; blocks?: string }[];
     flowType?: string;
   };
 
@@ -35,6 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         delayMinutes: email.delayMinutes,
         subject: email.subject,
         body: email.body,
+        blocks: email.blocks || "",
       },
     });
   }

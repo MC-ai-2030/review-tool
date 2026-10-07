@@ -4,3 +4,4 @@ prisma/dev.db
 app/generated/
 .env
 .vercel
+.env*

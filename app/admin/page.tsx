@@ -15,6 +15,7 @@ interface Brand {
   senderName: string;
   shopifyDomain: string;
   emailEnabled: boolean;
+  checkoutWebhookId: string;
 }
 
 const inputClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
@@ -116,6 +117,9 @@ export default function AdminPage() {
         setClientId("");
         setClientSecret("");
         fetchBrands();
+        if (!data.checkoutWebhookId) {
+          alert("Shopify gekoppeld, maar de checkout webhook kon niet worden geregistreerd. Voeg de 'read_checkouts' scope toe aan je Shopify app om abandoned checkout mails te activeren.");
+        }
       }
     } catch {
       setConnectError("Er ging iets mis");
@@ -364,22 +368,35 @@ export default function AdminPage() {
               {!editing && (
                 <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/50">
                   {brand.emailEnabled ? (
-                    <div className="flex items-center gap-3 text-sm">
-                      <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-600">Shopify gekoppeld: <span className="font-mono text-gray-900">{brand.shopifyDomain}</span></span>
-                      <div className="flex-1" />
-                      <button onClick={() => handleDisconnectShopify(brand.id)}
-                        className="text-xs text-red-500 hover:text-red-700 cursor-pointer">
-                        Ontkoppelen
-                      </button>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 text-sm">
+                        <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-gray-600">Shopify gekoppeld: <span className="font-mono text-gray-900">{brand.shopifyDomain}</span></span>
+                        <div className="flex-1" />
+                        <button onClick={() => handleDisconnectShopify(brand.id)}
+                          className="text-xs text-red-500 hover:text-red-700 cursor-pointer">
+                          Ontkoppelen
+                        </button>
+                      </div>
+                      {!brand.checkoutWebhookId && (
+                        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <div className="text-xs text-amber-800">
+                            <p className="font-medium">Abandoned checkout mails inactief</p>
+                            <p className="mt-0.5 text-amber-700">De checkout webhook kon niet worden geregistreerd. Voeg de <strong>read_checkouts</strong> scope toe aan je Shopify app (dev.shopify.com &rarr; App &rarr; Versions &rarr; scopes), release een nieuwe versie, en koppel opnieuw.</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : connecting === brand.id ? (
                     <div className="space-y-3">
                       <p className="text-sm font-medium text-gray-700">Shopify koppelen</p>
                       <p className="text-xs text-gray-500">
-                        Ga naar <strong>dev.shopify.com</strong> → Apps → Create app. Stel <strong>read_orders</strong> scope in bij Versions, release de versie, en installeer de app op je store. Kopieer daarna Client ID en Client Secret vanuit Settings.
+                        Ga naar <strong>dev.shopify.com</strong> &rarr; Apps &rarr; Create app. Stel bij Versions de scopes in: <strong>read_orders</strong> + <strong>read_checkouts</strong> (voor abandoned checkout mails). Release de versie, installeer de app op je store, en kopieer Client ID en Client Secret vanuit Settings.
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <input type="text" value={shopifyDomain} onChange={(e) => setShopifyDomain(e.target.value)}

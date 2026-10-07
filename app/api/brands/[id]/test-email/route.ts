@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { to, subject, body, flowType } = await request.json();
+  const { to, subject, body, flowType, blocks } = await request.json();
 
   if (!to) {
     return Response.json({ error: "E-mailadres is verplicht" }, { status: 400 });
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   ] : undefined;
 
   try {
-    await sendReviewEmail({
+    const result = await sendReviewEmail({
       to,
       customerName: "Test Klant",
       brandName: brand.name,
@@ -35,10 +35,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       checkoutUrl: isCheckout ? "https://shop.example.com/checkout/recover/test" : undefined,
       lineItems: dummyLineItems,
       currency: isCheckout ? "EUR" : undefined,
+      emailBlocks: blocks || undefined,
     });
 
-    return Response.json({ success: true });
+    const resendResult = result as { data?: { id?: string } | null; error?: { message?: string; name?: string } | null };
+    if (resendResult.error) {
+      console.error("Resend error:", resendResult.error);
+      return Response.json(
+        { error: `Resend: ${resendResult.error.message || resendResult.error.name || "onbekende fout"}` },
+        { status: 500 }
+      );
+    }
+
+    return Response.json({ success: true, emailId: resendResult.data?.id });
   } catch (error) {
+    console.error("Test email error:", error);
     return Response.json(
       { error: error instanceof Error ? error.message : "Verzenden mislukt" },
       { status: 500 }

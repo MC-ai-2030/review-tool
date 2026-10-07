@@ -1,7 +1,16 @@
 import { prisma } from "@/app/lib/prisma";
 import { sendReviewEmail } from "@/app/lib/email";
+import { pollAbandonedCheckouts } from "./abandoned-checkouts/poll";
 
 export async function GET() {
+  // Poll abandoned checkouts from Shopify API
+  let abandonedResult = { processed: 0, scheduled: 0, skipped: 0 };
+  try {
+    abandonedResult = await pollAbandonedCheckouts();
+  } catch (error) {
+    console.error("Abandoned checkout poll error:", error);
+  }
+
   // Find pending emails that should be sent within the next 72 hours
   const cutoff = new Date(Date.now() + 72 * 60 * 60 * 1000);
 
@@ -67,6 +76,7 @@ export async function GET() {
         checkoutUrl: isCheckout ? entry.checkoutUrl || undefined : undefined,
         lineItems,
         currency: isCheckout ? entry.checkoutCurrency || undefined : undefined,
+        emailBlocks: flowEmail.blocks || undefined,
       });
 
       await prisma.sentEmail.update({
@@ -79,5 +89,5 @@ export async function GET() {
     }
   }
 
-  return Response.json({ sent, skipped, total: pendingEmails.length });
+  return Response.json({ sent, skipped, total: pendingEmails.length, abandonedCheckouts: abandonedResult });
 }
