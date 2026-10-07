@@ -37,6 +37,11 @@ const DEFAULT_SUBJECTS: Record<string, string> = {
   da: "Hvordan var din oplevelse med {merknaam}?",
   no: "Hvordan var opplevelsen din med {merknaam}?",
   pl: "Jak oceniasz swoje doświadczenie z {merknaam}?",
+  fi: "Kerro meille kokemuksestasi – {merknaam}",
+  it: "Com'è stata la tua esperienza con {merknaam}?",
+  es: "¿Qué tal tu experiencia con {merknaam}?",
+  ja: "{merknaam}でのご体験はいかがでしたか？",
+  cs: "Jaká byla vaše zkušenost s {merknaam}?",
 };
 
 const DEFAULT_BODY: Record<string, string> = {
@@ -102,18 +107,78 @@ Kliknij przycisk poniżej, aby zostawić swoją opinię.
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Kiitos, että asioit kanssamme!
+
+Tarjoamme sinulle mielellämme 50 %:n hyvityksen tilauksestasi. Rehellinen arvostelusi auttaa meitä kehittymään, ja arvostamme sitä.
+
+Jätä arvostelusi alla olevasta painikkeesta.
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Grazie per essere cliente di {merknaam}!
+
+Siamo lieti di offrirti un rimborso del 50% sul tuo ordine. La tua recensione sincera ci aiuta a migliorare, e lo apprezziamo molto.
+
+Clicca sul pulsante qui sotto per lasciare la tua recensione.
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+¡Gracias por ser cliente de {merknaam}!
+
+Nos complace ofrecerte un reembolso del 50% de tu pedido. Tu reseña sincera nos ayuda a mejorar, y lo valoramos mucho.
+
+Haz clic en el botón de abajo para dejar tu reseña.
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}をご利用いただき、誠にありがとうございます。
+
+ご注文金額の50%を返金させていただきます。率直なレビューは私たちの改善に役立ちます。皆さまの声を大切にしています。
+
+下のボタンからレビューをお寄せください。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+děkujeme, že jste zákazníkem {merknaam}!
+
+Rádi vám nabídneme vrácení 50 % ceny vaší objednávky. Vaše upřímná recenze nám pomáhá se zlepšovat a moc si jí vážíme.
+
+Kliknutím na tlačítko níže zanecháte svou recenzi.
+
+S pozdravem
+{merknaam}`,
 };
 
 const CTA_LABELS: Record<string, string> = {
   en: "Leave your review", nl: "Laat je review achter", de: "Bewertung abgeben",
   sv: "Lämna din recension", da: "Giv din anmeldelse", no: "Gi din anmeldelse",
   pl: "Zostaw opinię",
+  fi: "Jätä arvostelu",
+  it: "Lascia la tua recensione",
+  es: "Deja tu reseña",
+  ja: "レビューを書く",
+  cs: "Napsat recenzi",
 };
 
 const CHECKOUT_CTA_LABELS: Record<string, string> = {
   en: "Complete your order", nl: "Rond je bestelling af", de: "Bestellung abschließen",
   sv: "Slutför din beställning", da: "Fuldfør din bestilling", no: "Fullfør bestillingen din",
   pl: "Dokończ zamówienie",
+  fi: "Viimeistele tilaus",
+  it: "Completa il tuo ordine",
+  es: "Completa tu pedido",
+  ja: "注文を完了する",
+  cs: "Dokončit objednávku",
 };
 
 const DEFAULT_BASIC_SUBJECTS: Record<string, string> = {
@@ -124,6 +189,11 @@ const DEFAULT_BASIC_SUBJECTS: Record<string, string> = {
   da: "En besked fra {merknaam}",
   no: "En melding fra {merknaam}",
   pl: "Wiadomość od {merknaam}",
+  fi: "Viesti meiltä – {merknaam}",
+  it: "Un messaggio da {merknaam}",
+  es: "Un mensaje de {merknaam}",
+  ja: "{merknaam}からのお知らせ",
+  cs: "Zpráva od {merknaam}",
 };
 
 const DEFAULT_BASIC_BODY: Record<string, string> = {
@@ -169,6 +239,36 @@ Dziękujemy za zainteresowanie {merknaam}!
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Kiitos kiinnostuksestasi!
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Grazie per il tuo interesse in {merknaam}!
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+¡Gracias por tu interés en {merknaam}!
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}にご関心をお寄せいただき、ありがとうございます。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+děkujeme za váš zájem o {merknaam}!
+
+S pozdravem
+{merknaam}`,
 };
 
 const DEFAULT_AC_SUBJECTS: Record<string, string> = {
@@ -179,6 +279,11 @@ const DEFAULT_AC_SUBJECTS: Record<string, string> = {
   da: "Du glemte noget, {voornaam}!",
   no: "Du glemte noe, {voornaam}!",
   pl: "Zapomniałeś o czymś, {voornaam}!",
+  fi: "Unohdit jotain, {voornaam}!",
+  it: "Hai dimenticato qualcosa, {voornaam}!",
+  es: "¡Te has dejado algo, {voornaam}!",
+  ja: "{voornaam}様、お忘れ物はありませんか？",
+  cs: "Něco jste zapomněli, {voornaam}!",
 };
 
 const DEFAULT_AC_BODY: Record<string, string> = {
@@ -238,6 +343,46 @@ Nie martw się — Twój koszyk jest zapisany. Kliknij przycisk poniżej, aby do
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Näyttää siltä, että ostoskoriisi jäi tuotteita.
+
+Ei hätää — ostoskorisi on tallessa. Viimeistele tilauksesi alla olevasta painikkeesta.
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Sembra che tu abbia lasciato alcuni articoli nel carrello su {merknaam}.
+
+Nessun problema — il tuo carrello è stato salvato. Clicca sul pulsante qui sotto per completare il tuo ordine.
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+Parece que has dejado algunos artículos en tu carrito de {merknaam}.
+
+No te preocupes — tu carrito sigue guardado. Haz clic en el botón de abajo para completar tu pedido.
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}のカートに商品が残っているようです。
+
+ご安心ください。カートの内容は保存されています。下のボタンからご注文を完了してください。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+zdá se, že jste v košíku v obchodě {merknaam} nechali nějaké zboží.
+
+Nemusíte se bát — váš košík zůstal uložený. Kliknutím na tlačítko níže dokončíte objednávku.
+
+S pozdravem
+{merknaam}`,
 };
 
 const inputClass = "px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white";
@@ -259,6 +404,11 @@ const BLOCK_LABELS: Record<string, string> = {
 const BASIC_CTA_LABELS: Record<string, string> = {
   en: "Learn more", nl: "Meer informatie", de: "Mehr erfahren",
   sv: "Läs mer", da: "Læs mere", no: "Les mer", pl: "Dowiedz się więcej",
+  fi: "Lue lisää",
+  it: "Scopri di più",
+  es: "Más información",
+  ja: "詳しく見る",
+  cs: "Zjistit více",
 };
 
 function defaultBlocksForFlow(flowType: string, lang: string): EmailBlock[] {

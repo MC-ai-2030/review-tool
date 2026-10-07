@@ -52,6 +52,11 @@ const DEFAULT_SUBJECTS: Record<string, string> = {
   da: "Hvordan var din oplevelse med {merknaam}?",
   no: "Hvordan var opplevelsen din med {merknaam}?",
   pl: "Jak oceniasz swoje doświadczenie z {merknaam}?",
+  fi: "Kerro meille kokemuksestasi – {merknaam}",
+  it: "Com'è stata la tua esperienza con {merknaam}?",
+  es: "¿Qué tal tu experiencia con {merknaam}?",
+  ja: "{merknaam}でのご体験はいかがでしたか？",
+  cs: "Jaká byla vaše zkušenost s {merknaam}?",
 };
 
 const DEFAULT_BODIES: Record<string, string> = {
@@ -125,6 +130,56 @@ Kliknij przycisk poniżej, aby zostawić swoją opinię.
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Kiitos, että asioit kanssamme!
+
+Tarjoamme sinulle mielellämme 50 %:n hyvityksen tilauksestasi. Rehellinen arvostelusi auttaa meitä kehittymään, ja arvostamme sitä.
+
+Jätä arvostelusi alla olevasta painikkeesta.
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Grazie per essere cliente di {merknaam}!
+
+Siamo lieti di offrirti un rimborso del 50% sul tuo ordine. La tua recensione sincera ci aiuta a migliorare, e lo apprezziamo molto.
+
+Clicca sul pulsante qui sotto per lasciare la tua recensione.
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+¡Gracias por ser cliente de {merknaam}!
+
+Nos complace ofrecerte un reembolso del 50% de tu pedido. Tu reseña sincera nos ayuda a mejorar, y lo valoramos mucho.
+
+Haz clic en el botón de abajo para dejar tu reseña.
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}をご利用いただき、誠にありがとうございます。
+
+ご注文金額の50%を返金させていただきます。率直なレビューは私たちの改善に役立ちます。皆さまの声を大切にしています。
+
+下のボタンからレビューをお寄せください。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+děkujeme, že jste zákazníkem {merknaam}!
+
+Rádi vám nabídneme vrácení 50 % ceny vaší objednávky. Vaše upřímná recenze nám pomáhá se zlepšovat a moc si jí vážíme.
+
+Kliknutím na tlačítko níže zanecháte svou recenzi.
+
+S pozdravem
+{merknaam}`,
 };
 
 const DEFAULT_BASIC_SUBJECTS: Record<string, string> = {
@@ -135,6 +190,11 @@ const DEFAULT_BASIC_SUBJECTS: Record<string, string> = {
   da: "En besked fra {merknaam}",
   no: "En melding fra {merknaam}",
   pl: "Wiadomość od {merknaam}",
+  fi: "Viesti meiltä – {merknaam}",
+  it: "Un messaggio da {merknaam}",
+  es: "Un mensaje de {merknaam}",
+  ja: "{merknaam}からのお知らせ",
+  cs: "Zpráva od {merknaam}",
 };
 
 const DEFAULT_BASIC_BODIES: Record<string, string> = {
@@ -180,6 +240,36 @@ Dziękujemy za zainteresowanie {merknaam}!
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Kiitos kiinnostuksestasi!
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Grazie per il tuo interesse in {merknaam}!
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+¡Gracias por tu interés en {merknaam}!
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}にご関心をお寄せいただき、ありがとうございます。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+děkujeme za váš zájem o {merknaam}!
+
+S pozdravem
+{merknaam}`,
 };
 
 const DEFAULT_CHECKOUT_SUBJECTS: Record<string, string> = {
@@ -190,6 +280,11 @@ const DEFAULT_CHECKOUT_SUBJECTS: Record<string, string> = {
   da: "Du glemte noget, {voornaam}!",
   no: "Du glemte noe, {voornaam}!",
   pl: "Zapomniałeś o czymś, {voornaam}!",
+  fi: "Unohdit jotain, {voornaam}!",
+  it: "Hai dimenticato qualcosa, {voornaam}!",
+  es: "¡Te has dejado algo, {voornaam}!",
+  ja: "{voornaam}様、お忘れ物はありませんか？",
+  cs: "Něco jste zapomněli, {voornaam}!",
 };
 
 const DEFAULT_CHECKOUT_BODIES: Record<string, string> = {
@@ -249,6 +344,46 @@ Nie martw się — Twój koszyk jest zapisany. Kliknij przycisk poniżej, aby do
 
 Z poważaniem,
 {merknaam}`,
+  fi: `Hei {voornaam},
+
+Näyttää siltä, että ostoskoriisi jäi tuotteita.
+
+Ei hätää — ostoskorisi on tallessa. Viimeistele tilauksesi alla olevasta painikkeesta.
+
+Ystävällisin terveisin,
+{merknaam}`,
+  it: `Ciao {voornaam},
+
+Sembra che tu abbia lasciato alcuni articoli nel carrello su {merknaam}.
+
+Nessun problema — il tuo carrello è stato salvato. Clicca sul pulsante qui sotto per completare il tuo ordine.
+
+Cordiali saluti,
+{merknaam}`,
+  es: `Hola {voornaam}:
+
+Parece que has dejado algunos artículos en tu carrito de {merknaam}.
+
+No te preocupes — tu carrito sigue guardado. Haz clic en el botón de abajo para completar tu pedido.
+
+Un saludo,
+{merknaam}`,
+  ja: `{voornaam}様
+
+{merknaam}のカートに商品が残っているようです。
+
+ご安心ください。カートの内容は保存されています。下のボタンからご注文を完了してください。
+
+よろしくお願いいたします。
+{merknaam}`,
+  cs: `Dobrý den, {voornaam},
+
+zdá se, že jste v košíku v obchodě {merknaam} nechali nějaké zboží.
+
+Nemusíte se bát — váš košík zůstal uložený. Kliknutím na tlačítko níže dokončíte objednávku.
+
+S pozdravem
+{merknaam}`,
 };
 
 const CTA_LABELS: Record<string, string> = {
@@ -259,6 +394,11 @@ const CTA_LABELS: Record<string, string> = {
   da: "Giv din anmeldelse",
   no: "Gi din anmeldelse",
   pl: "Zostaw opinię",
+  fi: "Jätä arvostelu",
+  it: "Lascia la tua recensione",
+  es: "Deja tu reseña",
+  ja: "レビューを書く",
+  cs: "Napsat recenzi",
 };
 
 const CHECKOUT_CTA_LABELS: Record<string, string> = {
@@ -269,6 +409,11 @@ const CHECKOUT_CTA_LABELS: Record<string, string> = {
   da: "Fuldfør din bestilling",
   no: "Fullfør bestillingen din",
   pl: "Dokończ zamówienie",
+  fi: "Viimeistele tilaus",
+  it: "Completa il tuo ordine",
+  es: "Completa tu pedido",
+  ja: "注文を完了する",
+  cs: "Dokončit objednávku",
 };
 
 const UNSUBSCRIBE_LABELS: Record<string, string> = {
@@ -278,6 +423,12 @@ const UNSUBSCRIBE_LABELS: Record<string, string> = {
   sv: "Avprenumerera",
   da: "Afmeld",
   no: "Avmeld",
+  pl: "Wypisz się",
+  fi: "Lopeta sähköpostit",
+  it: "Annulla iscrizione",
+  es: "Darse de baja",
+  ja: "配信停止",
+  cs: "Odhlásit odběr",
 };
 
 function replaceVars(text: string, vars: { firstName: string; brandName: string; orderNumber: string; reviewUrl: string; checkoutUrl: string }, isHtml: boolean, customVars?: Record<string, string>): string {
@@ -389,7 +540,7 @@ function renderBlocksHtml(
 
 export async function sendReviewEmail(params: SendReviewEmailParams) {
   const { to, customerName, brandName, brandSlug, logoUrl, primaryColor, language, emailSubject, emailBody, senderEmail, senderName, orderNumber, checkoutUrl, lineItems, currency, trackingId, scheduledAt, flowType, emailBlocks, customVars } = params;
-  const currencySymbols: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", SEK: "kr ", DKK: "kr ", NOK: "kr ", PLN: "zł ", CHF: "CHF " };
+  const currencySymbols: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", SEK: "kr ", DKK: "kr ", NOK: "kr ", PLN: "zł ", CHF: "CHF ", JPY: "¥", CZK: "Kč " };
   const currencySymbol = currencySymbols[currency || ""] || (currency ? currency + " " : "€");
   const firstName = customerName.split(" ")[0] || "";
   const rawReviewUrl = `https://reviews-verified.com/${brandSlug}`;
